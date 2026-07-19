@@ -5,7 +5,26 @@
 
 from pydantic import BaseModel
 
-from app.alpaca import AlpacaAccount
+from app.alpaca import AlpacaAccount, AlpacaPosition
+
+
+class PositionSnapshot(BaseModel):
+    ticker: str
+    shares: float
+    avgCost: float
+    currentPrice: float
+    value: float
+    gain: float
+    gainPct: float
+    """Recent daily closes, oldest first — the frontend derives sparkline
+    geometry from these raw numbers."""
+    closes: list[float]
+
+
+class AllocationEntry(BaseModel):
+    ticker: str
+    """Share of the invested (non-cash) portfolio value."""
+    weightPct: float
 
 
 class Snapshot(BaseModel):
@@ -17,6 +36,8 @@ class Snapshot(BaseModel):
     dailyChangePct: float
     cashPct: float
     weekChangePct: float | None
+    positions: list[PositionSnapshot]
+    allocation: list[AllocationEntry]
 
 
 def _pct(part: float, whole: float) -> float:
@@ -24,9 +45,14 @@ def _pct(part: float, whole: float) -> float:
 
 
 def build_snapshot(
-    account: AlpacaAccount, week_ago_equity: float | None, pnl_baseline: float
+    account: AlpacaAccount,
+    week_ago_equity: float | None,
+    positions: list[AlpacaPosition],
+    closes: dict[str, list[float]],
+    pnl_baseline: float,
 ) -> Snapshot:
     daily_change = account.equity - account.last_equity
+    invested = sum(p.market_value for p in positions)
     return Snapshot(
         portfolioValue=account.equity,
         cash=account.cash,
@@ -40,4 +66,21 @@ def build_snapshot(
             if week_ago_equity is not None
             else None
         ),
+        positions=[
+            PositionSnapshot(
+                ticker=p.symbol,
+                shares=p.qty,
+                avgCost=p.avg_entry_price,
+                currentPrice=p.current_price,
+                value=p.market_value,
+                gain=p.unrealized_pl,
+                gainPct=round(p.unrealized_plpc * 100, 2),
+                closes=closes.get(p.symbol, []),
+            )
+            for p in positions
+        ],
+        allocation=[
+            AllocationEntry(ticker=p.symbol, weightPct=_pct(p.market_value, invested))
+            for p in positions
+        ],
     )

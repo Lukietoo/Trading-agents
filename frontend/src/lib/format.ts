@@ -12,6 +12,11 @@ export function formatSignedMoney(amount: number): string {
   return `${amount < 0 ? "-" : "+"}${formatMoney(amount)}`
 }
 
+/** Per-share price with cents, e.g. 1065 → "$1,065.00". Drops the sign. */
+export function formatPrice(amount: number): string {
+  return `$${Math.abs(amount).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+}
+
 /** One decimal place, e.g. 17.49 → "17.5%". */
 export function formatPercent(pct: number): string {
   return `${Math.abs(pct).toFixed(1)}%`

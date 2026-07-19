@@ -1,6 +1,7 @@
 # Alpaca paper API access. The AlpacaClient protocol is the seam the HTTP
 # tests fake; HttpAlpacaClient is the real implementation.
 
+from datetime import datetime, timedelta, timezone
 from typing import Protocol
 
 import httpx
@@ -13,17 +14,36 @@ class AlpacaAccount(BaseModel):
     last_equity: float
 
 
+class AlpacaPosition(BaseModel):
+    symbol: str
+    qty: float
+    avg_entry_price: float
+    current_price: float
+    market_value: float
+    unrealized_pl: float
+    # Fraction, not percent: +6.7% arrives as 0.067.
+    unrealized_plpc: float
+
+
 class AlpacaClient(Protocol):
     async def get_account(self) -> AlpacaAccount: ...
 
     async def get_week_ago_equity(self) -> float | None: ...
 
+    async def get_positions(self) -> list[AlpacaPosition]: ...
+
+    async def get_recent_closes(self, symbols: list[str]) -> dict[str, list[float]]: ...
+
+
+SPARKLINE_CLOSES = 10
+
 
 class HttpAlpacaClient:
-    def __init__(self, base_url: str, key_id: str, secret_key: str):
+    def __init__(self, base_url: str, key_id: str, secret_key: str, data_base_url: str = "https://data.alpaca.markets"):
         # Accept the base URL with or without a trailing /v2 — both forms
         # circulate in Alpaca docs and env files.
         self._base_url = base_url.rstrip("/").removesuffix("/v2")
+        self._data_base_url = data_base_url.rstrip("/").removesuffix("/v2")
         self._headers = {
             "APCA-API-KEY-ID": key_id,
             "APCA-API-SECRET-KEY": secret_key,
@@ -44,3 +64,35 @@ class HttpAlpacaClient:
             response.raise_for_status()
         equities = [e for e in response.json().get("equity", []) if e is not None]
         return equities[0] if equities else None
+
+    async def get_positions(self) -> list[AlpacaPosition]:
+        async with httpx.AsyncClient(headers=self._headers) as http:
+            response = await http.get(f"{self._base_url}/v2/positions")
+            response.raise_for_status()
+        return [AlpacaPosition.model_validate(p) for p in response.json()]
+
+    async def get_recent_closes(self, symbols: list[str]) -> dict[str, list[float]]:
+        if not symbols:
+            return {}
+        # Without an explicit start, the bars endpoint defaults to today only —
+        # reach back far enough to cover SPARKLINE_CLOSES trading days.
+        start = datetime.now(timezone.utc) - timedelta(days=SPARKLINE_CLOSES * 2 + 5)
+        async with httpx.AsyncClient(headers=self._headers) as http:
+            response = await http.get(
+                f"{self._data_base_url}/v2/stocks/bars",
+                params={
+                    "symbols": ",".join(symbols),
+                    "timeframe": "1Day",
+                    "start": start.date().isoformat(),
+                    # IEX feed is available on free paper-account keys.
+                    "feed": "iex",
+                    # The limit counts bars across all symbols, not per symbol.
+                    "limit": 10_000,
+                },
+            )
+            response.raise_for_status()
+        bars_by_symbol = response.json().get("bars") or {}
+        return {
+            symbol: [bar["c"] for bar in bars[-SPARKLINE_CLOSES:]]
+            for symbol, bars in bars_by_symbol.items()
+        }

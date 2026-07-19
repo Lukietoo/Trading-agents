@@ -4,7 +4,7 @@
 
 import { describe, expect, it } from "vitest"
 
-import { toPortfolioSummary, type Snapshot } from "./snapshot"
+import { toAllocation, toPortfolioSummary, toPositions, type Snapshot } from "./snapshot"
 
 const designReferenceSnapshot: Snapshot = {
   portfolioValue: 104820,
@@ -15,6 +15,30 @@ const designReferenceSnapshot: Snapshot = {
   dailyChangePct: -0.3,
   cashPct: 17.5,
   weekChangePct: 4.8,
+  positions: [],
+  allocation: [],
+}
+
+// Design-reference rows: AAPL up $184 (+6.7%), TSLA down $310 (-7.5%).
+const aaplPosition = {
+  ticker: "AAPL",
+  shares: 12,
+  avgCost: 229.67,
+  currentPrice: 245,
+  value: 2940,
+  gain: 184,
+  gainPct: 6.7,
+  closes: [238, 245],
+}
+const tslaPosition = {
+  ticker: "TSLA",
+  shares: 15,
+  avgCost: 275.67,
+  currentPrice: 255,
+  value: 3825,
+  gain: -310,
+  gainPct: -7.5,
+  closes: [265, 255],
 }
 
 describe("toPortfolioSummary", () => {
@@ -63,5 +87,73 @@ describe("toPortfolioSummary", () => {
   it("omits the weekly note when there is no week-ago equity yet", () => {
     const fresh = toPortfolioSummary({ ...designReferenceSnapshot, weekChangePct: null })
     expect(fresh.portfolioValue.note).toBe("no weekly data yet")
+  })
+})
+
+describe("toPositions", () => {
+  const [aapl, tsla] = toPositions({
+    ...designReferenceSnapshot,
+    positions: [aaplPosition, tslaPosition],
+  })
+
+  it("formats prices with cents and value in whole dollars", () => {
+    expect(aapl.ticker).toBe("AAPL")
+    expect(aapl.shares).toBe(12)
+    expect(aapl.avgCost).toBe("$229.67")
+    expect(aapl.currentPrice).toBe("$245.00")
+    expect(aapl.value).toBe("$2,940")
+  })
+
+  it("renders gain/loss as signed money with signed percent, direction by sign", () => {
+    expect(aapl.change).toBe("+$184 (+6.7%)")
+    expect(aapl.positive).toBe(true)
+    expect(tsla.change).toBe("-$310 (-7.5%)")
+    expect(tsla.positive).toBe(false)
+  })
+
+  it("derives sparkline geometry from the raw closes", () => {
+    expect(aapl.sparklinePath).toBe("M0,15 L40,1")
+    expect(tsla.sparklinePath).toBe("M0,1 L40,15")
+  })
+})
+
+describe("toAllocation", () => {
+  const slices = toAllocation({
+    ...designReferenceSnapshot,
+    allocation: [
+      { ticker: "NVDA", weightPct: 37.5 },
+      { ticker: "AMZN", weightPct: 4.4 },
+    ],
+  })
+
+  it("maps weights to slice widths with the ticker color map", () => {
+    expect(slices[0]).toEqual({
+      ticker: "NVDA",
+      widthPct: 37.5,
+      color: "#3E9B6B",
+      showLabel: true,
+    })
+  })
+
+  it("omits labels for slices too narrow, per the design", () => {
+    expect(slices[1].showLabel).toBe(false)
+  })
+
+  it("assigns a stable fallback color to tickers outside the design set", () => {
+    const [unknown] = toAllocation({
+      ...designReferenceSnapshot,
+      allocation: [{ ticker: "PLTR", weightPct: 100 }],
+    })
+    expect(unknown.color).toMatch(/^#[0-9A-Fa-f]{6}$/)
+
+    // Stable: same ticker, same color, regardless of slice order.
+    const [, reordered] = toAllocation({
+      ...designReferenceSnapshot,
+      allocation: [
+        { ticker: "AAPL", weightPct: 50 },
+        { ticker: "PLTR", weightPct: 50 },
+      ],
+    })
+    expect(reordered.color).toBe(unknown.color)
   })
 })

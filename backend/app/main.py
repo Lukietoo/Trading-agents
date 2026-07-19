@@ -17,7 +17,9 @@ def create_app(alpaca: AlpacaClient, pnl_baseline: float = DEFAULT_PNL_BASELINE)
     async def snapshot() -> Snapshot:
         account = await alpaca.get_account()
         week_ago_equity = await alpaca.get_week_ago_equity()
-        return build_snapshot(account, week_ago_equity, pnl_baseline)
+        positions = await alpaca.get_positions()
+        closes = await alpaca.get_recent_closes([p.symbol for p in positions])
+        return build_snapshot(account, week_ago_equity, positions, closes, pnl_baseline)
 
     return app
 

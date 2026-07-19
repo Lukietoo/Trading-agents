@@ -12,6 +12,25 @@ export interface SummaryStat {
   note: string
 }
 
+/** One live position on the wire — numeric fields only. */
+export interface PositionSnapshot {
+  ticker: string
+  shares: number
+  avgCost: number
+  currentPrice: number
+  value: number
+  gain: number
+  gainPct: number
+  /** Recent daily closes, oldest first; sparkline geometry is derived client-side. */
+  closes: number[]
+}
+
+export interface AllocationEntry {
+  ticker: string
+  /** Share of the invested (non-cash) portfolio value. */
+  weightPct: number
+}
+
 /** GET /api/snapshot response — raw numbers per the numeric wire contract. */
 export interface Snapshot {
   portfolioValue: number
@@ -23,6 +42,8 @@ export interface Snapshot {
   cashPct: number
   /** Null until the account has a week of portfolio history. */
   weekChangePct: number | null
+  positions: PositionSnapshot[]
+  allocation: AllocationEntry[]
 }
 
 export interface PortfolioSummary {

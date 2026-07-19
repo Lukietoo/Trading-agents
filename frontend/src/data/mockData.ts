@@ -4,29 +4,9 @@
 
 import type {
   ActivityEntry,
-  AllocationSlice,
   PortfolioChartData,
-  Position,
   TradeEntry,
 } from "@/types"
-
-const sparklinePaths = [
-  "M0,12 Q5,10 10,8 T20,5 T30,3 T40,2",
-  "M0,14 Q8,12 12,8 T24,4 T32,2 T40,1",
-  "M0,3 Q8,4 14,7 T24,10 T32,12 T40,14",
-  "M0,8 Q8,7 14,7 T24,6 T32,6 T40,5",
-  "M0,4 Q8,5 14,7 T24,9 T32,11 T40,13",
-  "M0,13 Q6,11 12,8 T22,5 T32,3 T40,2",
-]
-
-export const positions: Position[] = [
-  { ticker: "AAPL", shares: 12, avgCost: "$229.67", currentPrice: "$245.00", value: "$2,940", change: "+$184 (+6.7%)", positive: true, sparklinePath: sparklinePaths[0] },
-  { ticker: "NVDA", shares: 8, avgCost: "$1,065.00", currentPrice: "$1,220.00", value: "$9,760", change: "+$1,240 (+14.6%)", positive: true, sparklinePath: sparklinePaths[1] },
-  { ticker: "TSLA", shares: 15, avgCost: "$275.67", currentPrice: "$255.00", value: "$3,825", change: "-$310 (-7.5%)", positive: false, sparklinePath: sparklinePaths[2] },
-  { ticker: "MSFT", shares: 10, avgCost: "$411.50", currentPrice: "$421.00", value: "$4,210", change: "+$95 (+2.3%)", positive: true, sparklinePath: sparklinePaths[3] },
-  { ticker: "AMZN", shares: 6, avgCost: "$198.67", currentPrice: "$190.00", value: "$1,140", change: "-$52 (-4.4%)", positive: false, sparklinePath: sparklinePaths[4] },
-  { ticker: "META", shares: 9, avgCost: "$360.22", currentPrice: "$390.00", value: "$3,510", change: "+$268 (+8.3%)", positive: true, sparklinePath: sparklinePaths[5] },
-]
 
 export const recentTrades: TradeEntry[] = [
   { ticker: "NVDA", side: "buy", summary: "Buy · 3 shares", amount: "$3,660", date: "Today", badge: "green" },
@@ -54,12 +34,3 @@ export const portfolioChart: PortfolioChartData = {
   dotIndices: [0, 3, 7, 12, 14],
   months: ["Jul", "Sep", "Nov", "Jan", "Mar", "May", "Jul"],
 }
-
-export const allocation: AllocationSlice[] = [
-  { ticker: "AAPL", widthPct: 11.3, color: "#3B6FE0", showLabel: true },
-  { ticker: "NVDA", widthPct: 37.5, color: "#3E9B6B", showLabel: true },
-  { ticker: "TSLA", widthPct: 14.7, color: "#D9695E", showLabel: true },
-  { ticker: "MSFT", widthPct: 16.2, color: "#8B5CF6", showLabel: true },
-  { ticker: "AMZN", widthPct: 4.4, color: "#F59E0B", showLabel: false },
-  { ticker: "META", widthPct: 13.5, color: "#6366F1", showLabel: true },
-]
