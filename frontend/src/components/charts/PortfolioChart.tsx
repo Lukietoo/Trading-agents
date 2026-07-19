@@ -1,9 +1,11 @@
 import { usePortfolioChart } from "@/hooks/portfolio"
+import type { ChartPeriod } from "@/types"
 
 // Hand-rolled SVG line chart, an exact port of the reference prototype:
 // L-shaped ink axes, 3 dashed gridlines, smooth cubic curve with blue dots,
 // month labels, stroke draw-in animation on mount. Geometry constants and
-// the curve-smoothing math match the reference verbatim.
+// the curve-smoothing math match the reference verbatim; the line itself is
+// derived from real portfolio history for the selected period.
 const CHART_W = 480
 const CHART_H = 220
 const MX = 40
@@ -11,11 +13,11 @@ const MY = 20
 const CW = CHART_W - MX - 20
 const CH = CHART_H - MY - 35
 
-export function PortfolioChart() {
-  const { points, dotIndices, months } = usePortfolioChart()
+export function PortfolioChart({ period }: { period: ChartPeriod }) {
+  const { points, dotIndices, months } = usePortfolioChart(period)
 
   const pts = points.map(({ x, y }) => [MX + x * CW, MY + y * CH] as const)
-  let pathD = `M${pts[0][0]},${pts[0][1]}`
+  let pathD = pts.length ? `M${pts[0][0]},${pts[0][1]}` : ""
   for (let i = 1; i < pts.length; i++) {
     const [px, py] = pts[i - 1]
     const [cx, cy] = pts[i]
@@ -42,6 +44,7 @@ export function PortfolioChart() {
       <line x1={MX} y1={MY - 5} x2={MX} y2={MY + CH} stroke="#1A1A1A" strokeWidth={2.2} strokeLinecap="round" style={{ filter: "url(#sketchy)" }} />
       <line x1={MX} y1={MY + CH} x2={MX + CW + 5} y2={MY + CH} stroke="#1A1A1A" strokeWidth={2.2} strokeLinecap="round" style={{ filter: "url(#sketchy)" }} />
       <path
+        key={period} // remount on period switch so the draw-in animation replays
         d={pathD}
         fill="none"
         stroke="#1A1A1A"

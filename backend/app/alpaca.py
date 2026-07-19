@@ -1,11 +1,14 @@
 # Alpaca paper API access. The AlpacaClient protocol is the seam the HTTP
 # tests fake; HttpAlpacaClient is the real implementation.
 
+import asyncio
 from datetime import datetime, timedelta, timezone
-from typing import Protocol
+from typing import Literal, Protocol
 
 import httpx
 from pydantic import BaseModel
+
+ChartPeriod = Literal["1M", "3M", "1Y"]
 
 
 class AlpacaAccount(BaseModel):
@@ -25,6 +28,13 @@ class AlpacaPosition(BaseModel):
     unrealized_plpc: float
 
 
+class HistoryPoint(BaseModel):
+    """One portfolio-history sample: epoch seconds and equity."""
+
+    t: int
+    v: float
+
+
 class AlpacaClient(Protocol):
     async def get_account(self) -> AlpacaAccount: ...
 
@@ -33,6 +43,8 @@ class AlpacaClient(Protocol):
     async def get_positions(self) -> list[AlpacaPosition]: ...
 
     async def get_recent_closes(self, symbols: list[str]) -> dict[str, list[float]]: ...
+
+    async def get_portfolio_history(self) -> dict[ChartPeriod, list[HistoryPoint]]: ...
 
 
 SPARKLINE_CLOSES = 10
@@ -70,6 +82,28 @@ class HttpAlpacaClient:
             response = await http.get(f"{self._base_url}/v2/positions")
             response.raise_for_status()
         return [AlpacaPosition.model_validate(p) for p in response.json()]
+
+    async def get_portfolio_history(self) -> dict[ChartPeriod, list[HistoryPoint]]:
+        # Alpaca spells the one-year period "1A"; the wire contract keys the
+        # series by the frontend's period names.
+        periods: dict[ChartPeriod, str] = {"1M": "1M", "3M": "3M", "1Y": "1A"}
+
+        async def fetch(http: httpx.AsyncClient, alpaca_period: str) -> list[HistoryPoint]:
+            response = await http.get(
+                f"{self._base_url}/v2/account/portfolio/history",
+                params={"period": alpaca_period, "timeframe": "1D"},
+            )
+            response.raise_for_status()
+            body = response.json()
+            return [
+                HistoryPoint(t=t, v=v)
+                for t, v in zip(body.get("timestamp", []), body.get("equity", []))
+                if v is not None
+            ]
+
+        async with httpx.AsyncClient(headers=self._headers) as http:
+            series = await asyncio.gather(*(fetch(http, p) for p in periods.values()))
+        return dict(zip(periods.keys(), series))
 
     async def get_recent_closes(self, symbols: list[str]) -> dict[str, list[float]]:
         if not symbols:

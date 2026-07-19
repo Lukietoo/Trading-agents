@@ -5,7 +5,7 @@
 
 from pydantic import BaseModel
 
-from app.alpaca import AlpacaAccount, AlpacaPosition
+from app.alpaca import AlpacaAccount, AlpacaPosition, ChartPeriod, HistoryPoint
 
 
 class PositionSnapshot(BaseModel):
@@ -38,6 +38,9 @@ class Snapshot(BaseModel):
     weekChangePct: float | None
     positions: list[PositionSnapshot]
     allocation: list[AllocationEntry]
+    """Portfolio-history series keyed by chart period (1M/3M/1Y) — raw
+    timestamp/value pairs; chart geometry is derived client-side."""
+    history: dict[ChartPeriod, list[HistoryPoint]]
 
 
 def _pct(part: float, whole: float) -> float:
@@ -49,6 +52,7 @@ def build_snapshot(
     week_ago_equity: float | None,
     positions: list[AlpacaPosition],
     closes: dict[str, list[float]],
+    history: dict[ChartPeriod, list[HistoryPoint]],
     pnl_baseline: float,
 ) -> Snapshot:
     daily_change = account.equity - account.last_equity
@@ -83,4 +87,5 @@ def build_snapshot(
             AllocationEntry(ticker=p.symbol, weightPct=_pct(p.market_value, invested))
             for p in positions
         ],
+        history=history,
     )

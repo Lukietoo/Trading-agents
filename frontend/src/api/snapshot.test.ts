@@ -17,6 +17,7 @@ const designReferenceSnapshot: Snapshot = {
   weekChangePct: 4.8,
   positions: [],
   allocation: [],
+  history: { "1M": [], "3M": [], "1Y": [] },
 }
 
 // Design-reference rows: AAPL up $184 (+6.7%), TSLA down $310 (-7.5%).

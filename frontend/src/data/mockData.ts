@@ -2,11 +2,7 @@
 // Sources: design-reference/README.md tables and the reference prototype's
 // data arrays in "Paper Trading Dashboard.dc.html".
 
-import type {
-  ActivityEntry,
-  PortfolioChartData,
-  TradeEntry,
-} from "@/types"
+import type { ActivityEntry, TradeEntry } from "@/types"
 
 export const recentTrades: TradeEntry[] = [
   { ticker: "NVDA", side: "buy", summary: "Buy · 3 shares", amount: "$3,660", date: "Today", badge: "green" },
@@ -24,13 +20,3 @@ export const activityLog: ActivityEntry[] = [
   { type: "buy", ticker: "NVDA", subtitle: "Market Buy", detail: "Bought 5 shares at $1,065.00", amount: "-$5,325.00", credit: false, date: "Jun 28, 2026", badge: "blue" },
   { type: "dividend", ticker: "AAPL", subtitle: "Dividend", detail: "Quarterly dividend · $0.25/share", amount: "+$3.00", credit: true, date: "Jun 20, 2026", badge: "purple" },
 ]
-
-export const portfolioChart: PortfolioChartData = {
-  points: [
-    { x: 0, y: 0.85 }, { x: 0.08, y: 0.78 }, { x: 0.16, y: 0.72 }, { x: 0.22, y: 0.55 }, { x: 0.3, y: 0.45 },
-    { x: 0.38, y: 0.32 }, { x: 0.45, y: 0.22 }, { x: 0.52, y: 0.18 }, { x: 0.58, y: 0.24 }, { x: 0.65, y: 0.28 },
-    { x: 0.72, y: 0.35 }, { x: 0.8, y: 0.42 }, { x: 0.86, y: 0.38 }, { x: 0.92, y: 0.3 }, { x: 1, y: 0.25 },
-  ],
-  dotIndices: [0, 3, 7, 12, 14],
-  months: ["Jul", "Sep", "Nov", "Jan", "Mar", "May", "Jul"],
-}

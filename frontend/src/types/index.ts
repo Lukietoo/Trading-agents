@@ -31,6 +31,16 @@ export interface AllocationEntry {
   weightPct: number
 }
 
+/** Chart period options shared by the period toggles and the snapshot's history keys. */
+export const CHART_PERIODS = ["1M", "3M", "1Y"] as const
+export type ChartPeriod = (typeof CHART_PERIODS)[number]
+
+/** One portfolio-history sample: epoch seconds and equity. */
+export interface HistoryPoint {
+  t: number
+  v: number
+}
+
 /** GET /api/snapshot response — raw numbers per the numeric wire contract. */
 export interface Snapshot {
   portfolioValue: number
@@ -44,6 +54,8 @@ export interface Snapshot {
   weekChangePct: number | null
   positions: PositionSnapshot[]
   allocation: AllocationEntry[]
+  /** Portfolio-history series keyed by chart period; geometry is derived client-side. */
+  history: Record<ChartPeriod, HistoryPoint[]>
 }
 
 export interface PortfolioSummary {
