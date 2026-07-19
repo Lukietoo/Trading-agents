@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+
+<helmet>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+  <style>
+    body { margin: 0; background: #F5F6F8; }
+    a { color: #3B6FE0; }
+    a:hover { color: #2a56b8; }
+    @keyframes drawIn {
+      from { stroke-dashoffset: 1000; }
+      to { stroke-dashoffset: 0; }
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</helmet>
+
+<svg style="position:absolute;width:0;height:0;overflow:hidden">
+  <defs>
+    <filter id="sketchy" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="turbulence" baseFrequency="0.03" numOctaves="4" seed="1" result="noise"></feTurbulence>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.5" xChannelSelector="R" yChannelSelector="G"></feDisplacementMap>
+    </filter>
+    <filter id="sketchy2" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="turbulence" baseFrequency="0.03" numOctaves="4" seed="2" result="noise"></feTurbulence>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.8" xChannelSelector="R" yChannelSelector="G"></feDisplacementMap>
+    </filter>
+    <filter id="sketchyBorder" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="turbulence" baseFrequency="0.02" numOctaves="3" seed="3" result="noise"></feTurbulence>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="2" xChannelSelector="R" yChannelSelector="G"></feDisplacementMap>
+    </filter>
+  </defs>
+</svg>
+
+<div style="max-width:1440px;margin:0 auto;padding:28px 32px 48px">
+
+  <!-- HEADER ROW -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+    <div style="font-family:'Caveat',cursive;font-size:38px;font-weight:700;color:#1A1A1A;line-height:1.1">Paper Trading</div>
+    <div style="display:flex;align-items:center;position:relative">
+      <div style="position:absolute;right:0;top:-32px;opacity:0.18">
+        <svg width="60" height="40" viewBox="0 0 60 40">
+          <line x1="8" y1="4" x2="52" y2="4" stroke="#888" stroke-width="1.5" stroke-dasharray="6,4"></line>
+          <line x1="5" y1="9" x2="55" y2="9" stroke="#888" stroke-width="1.2" stroke-dasharray="5,5"></line>
+          <line x1="10" y1="14" x2="50" y2="14" stroke="#888" stroke-width="1.5" stroke-dasharray="7,3"></line>
+          <line x1="7" y1="19" x2="53" y2="19" stroke="#888" stroke-width="1.3" stroke-dasharray="4,5"></line>
+          <line x1="9" y1="24" x2="48" y2="24" stroke="#888" stroke-width="1.4" stroke-dasharray="6,4"></line>
+          <line x1="6" y1="29" x2="54" y2="29" stroke="#888" stroke-width="1.2" stroke-dasharray="5,4"></line>
+          <line x1="11" y1="34" x2="49" y2="34" stroke="#888" stroke-width="1.5" stroke-dasharray="7,3"></line>
+          <line x1="8" y1="39" x2="52" y2="39" stroke="#888" stroke-width="1.3" stroke-dasharray="4,6"></line>
+        </svg>
+      </div>
+      <div style="display:flex;gap:12px">
+        <!-- Export button with dropdown -->
+        <div style="position:relative">
+          <div onClick="{{ toggleExport }}" style="display:flex;align-items:center;gap:8px;padding:10px 20px;background:#FEFDF9;border:2.5px solid #1A1A1A;border-radius:8px;font-family:'Inter',sans-serif;font-size:15px;font-weight:500;color:#1A1A1A;cursor:pointer;box-shadow:2px 3px 0px rgba(0,0,0,0.08);filter:url(#sketchyBorder)" style-hover="background:#f0eddf;box-shadow:1px 2px 0px rgba(0,0,0,0.06)">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round">
+              <path d="M8 2v8M4 7l4 4 4-4M2 13h12"></path>
+            </svg>
+            Export
+          </div>
+          <sc-if value="{{ showExport }}" hint-placeholder-val="{{ false }}">
+            <div style="position:absolute;right:0;top:52px;background:#FEFDF9;border:2.5px solid #1A1A1A;border-radius:10px;padding:8px 0;min-width:200px;box-shadow:4px 5px 0px rgba(0,0,0,0.1);filter:url(#sketchyBorder);z-index:100">
+              <div style="padding:10px 20px;font-family:'Inter',sans-serif;font-size:14px;color:#1A1A1A;cursor:pointer;display:flex;align-items:center;gap:10px" style-hover="background:#C9DFF5">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#1A1A1A" stroke-width="1.6" stroke-linecap="round"><path d="M2 2h12v12H2z"></path><path d="M5 1v3M11 1v3M2 6h12"></path></svg>
+                Export as CSV
+              </div>
+              <div style="padding:10px 20px;font-family:'Inter',sans-serif;font-size:14px;color:#1A1A1A;cursor:pointer;display:flex;align-items:center;gap:10px" style-hover="background:#C9DFF5">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#1A1A1A" stroke-width="1.6" stroke-linecap="round"><rect x="2" y="2" width="12" height="12" rx="1"></rect><path d="M5 6h6M5 9h4"></path></svg>
+                Export as PDF
+              </div>
+              <div style="border-top:1.5px dashed #d0cec6;margin:4px 12px"></div>
+              <div style="padding:10px 20px;font-family:'Inter',sans-serif;font-size:14px;color:#1A1A1A;cursor:pointer;display:flex;align-items:center;gap:10px" style-hover="background:#C9DFF5">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#1A1A1A" stroke-width="1.6" stroke-linecap="round"><circle cx="8" cy="8" r="6"></circle><path d="M8 5v3l2 1.5"></path></svg>
+                Schedule Report
+              </div>
+              <div style="padding:10px 20px;font-family:'Inter',sans-serif;font-size:14px;color:#1A1A1A;cursor:pointer;display:flex;align-items:center;gap:10px" style-hover="background:#C9DFF5">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#1A1A1A" stroke-width="1.6" stroke-linecap="round"><path d="M6 2H3a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-3"></path><path d="M9 2h5v5"></path><path d="M14 2L7 9"></path></svg>
+                Share Dashboard
+              </div>
+            </div>
+          </sc-if>
+        </div>
+        <!-- Settings button -->
+        
+      </div>
+    </div>
+  </div>
+
+  <!-- DIVIDER BAR -->
+  <div style="position:relative;height:6px;margin-bottom:24px">
+    <div style="position:absolute;inset:0;background:#e0e2e6;border-radius:3px"></div>
+    <div style="position:absolute;left:0;top:0;bottom:0;width:65%;border-radius:3px;background:linear-gradient(to right, #E8837A 0%, #E8837A 35%, #8FB8E8 100%)"></div>
+  </div>
+
+  <!-- DECORATIVE DASHED LINES -->
+  <div style="position:relative">
+    <div style="position:absolute;right:40px;top:0;opacity:0.15">
+      <svg width="65" height="44" viewBox="0 0 65 44">
+        <line x1="5" y1="4" x2="58" y2="4" stroke="#888" stroke-width="1.5" stroke-dasharray="5,5"></line>
+        <line x1="8" y1="9" x2="55" y2="9" stroke="#888" stroke-width="1.3" stroke-dasharray="6,4"></line>
+        <line x1="3" y1="14" x2="60" y2="14" stroke="#888" stroke-width="1.5" stroke-dasharray="4,5"></line>
+        <line x1="7" y1="19" x2="56" y2="19" stroke="#888" stroke-width="1.2" stroke-dasharray="7,3"></line>
+        <line x1="4" y1="24" x2="59" y2="24" stroke="#888" stroke-width="1.4" stroke-dasharray="5,4"></line>
+        <line x1="9" y1="29" x2="53" y2="29" stroke="#888" stroke-width="1.3" stroke-dasharray="6,5"></line>
+        <line x1="6" y1="34" x2="57" y2="34" stroke="#888" stroke-width="1.5" stroke-dasharray="4,4"></line>
+        <line x1="5" y1="39" x2="58" y2="39" stroke="#888" stroke-width="1.2" stroke-dasharray="7,4"></line>
+      </svg>
+    </div>
+  </div>
+
+  <!-- NAVIGATION TABS -->
+  <div style="display:flex;gap:8px;margin-bottom:24px">
+    <sc-for list="{{ tabs }}" as="tab" hint-placeholder-count="4">
+      <div onClick="{{ tab.onClick }}" style="{{ tab.style }}" style-hover="{{ tab.hoverStyle }}">{{ tab.label }}</div>
+    </sc-for>
+  </div>
+
+  <!-- ==================== OVERVIEW TAB ==================== -->
+  <sc-if value="{{ isOverview }}" hint-placeholder-val="{{ true }}">
+    <!-- STAT CARDS ROW -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:24px;margin-bottom:24px">
+      <div style="background:#F7F3EA;border:2.5px solid #1A1A1A;border-radius:12px;padding:24px;box-shadow:3px 4px 0px rgba(0,0,0,0.07);filter:url(#sketchyBorder);animation:fadeUp 0.6s ease-out both;animation-delay:0.1s">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+          <div style="width:48px;height:48px;border-radius:50%;background:#D6E8FB;display:flex;align-items:center;justify-content:center">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#1A1A1A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="18" height="13" rx="2"></rect><path d="M6 6V4a5 5 0 0 1 10 0v2"></path><circle cx="11" cy="13" r="2"></circle></svg>
+          </div>
+          <div style="font-family:'Caveat',cursive;font-size:21px;font-weight:700;color:#1A1A1A">Portfolio Value</div>
+        </div>
+        <div style="font-family:'Caveat',cursive;font-size:38px;font-weight:700;color:#3B6FE0;line-height:1">$104,820</div>
+        <div style="font-family:'Inter',sans-serif;font-size:13px;color:#6B7280;margin-top:6px">+4.8% from last week</div>
+      </div>
+      <div style="background:#F7F3EA;border:2.5px solid #1A1A1A;border-radius:12px;padding:24px;box-shadow:3px 4px 0px rgba(0,0,0,0.07);filter:url(#sketchyBorder);animation:fadeUp 0.6s ease-out both;animation-delay:0.2s">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+          <div style="width:48px;height:48px;border-radius:50%;background:#D4F0DE;display:flex;align-items:center;justify-content:center">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#1A1A1A" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="8"></circle><path d="M11 6v10M8 9h6M8 13h6"></path></svg>
+          </div>
+          <div style="font-family:'Caveat',cursive;font-size:21px;font-weight:700;color:#1A1A1A">Cash</div>
+        </div>
+        <div style="font-family:'Caveat',cursive;font-size:38px;font-weight:700;color:#3E9B6B;line-height:1">$18,340</div>
+        <div style="font-family:'Inter',sans-serif;font-size:13px;color:#6B7280;margin-top:6px">17.5% of portfolio</div>
+      </div>
+      <div style="background:#F7F3EA;border:2.5px solid #1A1A1A;border-radius:12px;padding:24px;box-shadow:3px 4px 0px rgba(0,0,0,0.07);filter:url(#sketchyBorder);animation:fadeUp 0.6s ease-out both;animation-delay:0.3s">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+          <div style="width:48px;height:48px;border-radius:50%;background:#E8DFFA;display:flex;align-items:center;justify-content:center">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#1A1A1A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3,16 8,10 12,13 19,5"></polyline><polyline points="14,5 19,5 19,10"></polyline></svg>
+          </div>
+          <div style="font-family:'Caveat',cursive;font-size:21px;font-weight:700;color:#1A1A1A">Total P&amp;L</div>
+        </div>
+        <div style="font-family:'Caveat',cursive;font-size:38px;font-weight:700;color:#3E9B6B;line-height:1">+$4,820</div>
+        <div style="font-family:'Inter',sans-serif;font-size:13px;color:#6B7280;margin-top:6px">+4.8% all-time</div>
+      </div>
+      <div style="background:#F7F3EA;border:2.5px solid #1A1A1A;border-radius:12px;padding:24px;box-shadow:3px 4px 0px rgba(0,0,0,0.07);filter:url(#sketchyBorder);animation:fadeUp 0.6s ease-out both;animation-delay:0.4s">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+          <div style="width:48px;height:48px;border-radius:50%;background:#FBEFC7;display:flex;align-items:center;justify-content:center">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#1A1A1A" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="8"></circle><path d="M11 7v4l3 2"></path></svg>
+          </div>
+          <div style="font-family:'Caveat',cursive;font-size:21px;font-weight:700;color:#1A1A1A">Today</div>
+        </div>
+        <div style="font-family:'Caveat',cursive;font-size:38px;font-weight:700;color:#D9695E;line-height:1">-$312</div>
+        <div style="font-family:'Inter',sans-serif;font-size:13px;color:#6B7280;margin-top:6px">-0.3% since open</div>
+      </div>
+    </div>
+
+    <!-- CHART PANELS ROW -->
+    <div style="display:grid;grid-template-columns:45fr 55fr;gap:24px">
+      <div style="display:flex;flex-direction:column;gap:24px">
+        <!-- Portfolio Value Chart -->
+        <div style="background:#F7F3EA;border:2.5px solid #1A1A1A;border-radius:12px;padding:24px 28px;box-shadow:3px 4px 0px rgba(0,0,0,0.07);filter:url(#sketchyBorder);animation:fadeUp 0.6s ease-out both;animation-delay:0.5s">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
+            <div style="font-family:'Caveat',cursive;font-size:23px;font-weight:700;color:#1A1A1A">Portfolio Value</div>
+            <div style="display:flex;gap:0">
+              <div style="padding:6px 14px;background:#FEFDF9;border:2px solid #1A1A1A;border-radius:6px 0 0 6px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;color:#1A1A1A;cursor:pointer;filter:url(#sketchy)">1M</div>
+              <div style="padding:6px 14px;background:#FEFDF9;border:2px solid #1A1A1A;border-left:none;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;color:#1A1A1A;cursor:pointer;filter:url(#sketchy)">3M</div>
+              <div style="padding:6px 14px;background:#C9DFF5;border:2px solid #1A1A1A;border-left:none;border-radius:0 6px 6px 0;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;color:#1A1A1A;cursor:pointer;filter:url(#sketchy)">1Y</div>
+            </div>
+          </div>
+          <div style="position:relative">{{ chartSvg }}</div>
+        </div>
+        <!-- Recent Trades -->
+        <div style="background:#F7F3EA;border:2.5px solid #1A1A1A;border-radius:12px;padding:20px 24px;box-shadow:3px 4px 0px rgba(0,0,0,0.07);filter:url(#sketchyBorder);animation:fadeUp 0.6s ease-out both;animation-delay:0.7s;flex:1">
+          <div style="font-family:'Caveat',cursive;font-size:21px;font-weight:700;color:#1A1A1A;margin-bottom:14px">Recent Trades</div>
+          <sc-for list="{{ recentTrades }}" as="trade" hint-placeholder-count="3">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0">
+              <div style="display:flex;align-items:center;gap:10px">
+                <div style="{{ trade.badgeStyle }}">{{ trade.type }}</div>
+                <div>
+                  <div style="font-family:'Caveat',cursive;font-size:17px;font-weight:700;color:#1A1A1A">{{ trade.ticker }}</div>
+                  <div style="font-family:'Inter',sans-serif;font-size:11px;color:#6B7280">{{ trade.desc }}</div>
+                </div>
+              </div>
+              <div style="text-align:right">
+                <div style="font-family:'Inter',sans-serif;font-size:14px;font-weight:500;color:#1A1A1A">{{ trade.amount }}</div>
+                <div style="font-family:'Inter',sans-serif;font-size:11px;color:#6B7280">{{ trade.date }}</div>
+              </div>
+            </div>
+            <sc-if value="{{ trade.showDivider }}" hint-placeholder-val="{{ true }}">
+              <div style="border-bottom:1.5px dashed #d0cec6"></div>
+            </sc-if>
+          </sc-for>
+        </div>
+      </div>
+      <!-- Positions Summary -->
+      <div style="background:#F7F3EA;border:2.5px solid #1A1A1A;border-radius:12px;padding:24px 28px;box-shadow:3px 4px 0px rgba(0,0,0,0.07);filter:url(#sketchyBorder);animation:fadeUp 0.6s ease-out both;animation-delay:0.6s">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+          <div style="font-family:'Caveat',cursive;font-size:23px;font-weight:700;color:#1A1A1A">Positions</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-family:'Inter',sans-serif;font-size:13px;color:#6B7280">View:</span>
+            <div style="padding:6px 14px;background:#FEFDF9;border:2px solid #1A1A1A;border-radius:6px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;color:#1A1A1A;filter:url(#sketchy)">Table</div>
+          </div>
+        </div>
+        <sc-for list="{{ positions }}" as="pos" hint-placeholder-count="6">
+          <div style="display:flex;align-items:center;padding:14px 0" style-hover="background:rgba(201,223,245,0.25);margin:0 -12px;padding:14px 12px;border-radius:6px">
+            <div style="flex:0 0 80px">
+              <div style="font-family:'Caveat',cursive;font-size:20px;font-weight:700;color:#1A1A1A">{{ pos.ticker }}</div>
+              <div style="font-family:'Inter',sans-serif;font-size:12px;color:#6B7280">{{ pos.shares }}</div>
+            </div>
+            <div style="flex:1"></div>
+            {{ pos.sparkline }}
+            <div style="flex:0 0 90px;text-align:right;font-family:'Inter',sans-serif;font-size:15px;font-weight:500;color:#1A1A1A;margin-left:12px">{{ pos.value }}</div>
+            <div style="flex:0 0 130px;text-align:right;font-family:'Inter',sans-serif;font-size:14px;font-weight:600;margin-left:8px">
+              <span style="{{ pos.changeStyle }}">{{ pos.change }}</span>
+            </div>
+          </div>
+          <sc-if value="{{ pos.showDivider }}" hint-placeholder-val="{{ true }}">
+            <div style="border-bottom:1.5px dashed #d0cec6;margin:0"></div>
+          </sc-if>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ==================== POSITIONS TAB ==================== -->
+  <sc-if value="{{ isPositions }}" hint-placeholder-val="{{ false }}">
+    <div style="animation:fadeUp 0.4s ease-out both">
+      <!-- Portfolio allocation bar -->
+      <div style="background:#F7F3EA;border:2.5px solid #1A1A1A;border-radius:12px;padding:24px 28px;box-shadow:3px 4px 0px rgba(0,0,0,0.07);filter:url(#sketchyBorder);margin-bottom:24px">
+        <div style="font-family:'Caveat',cursive;font-size:23px;font-weight:700;color:#1A1A1A;margin-bottom:16px">Portfolio Allocation</div>
+        <div style="display:flex;height:28px;border-radius:6px;overflow:hidden;border:2px solid #1A1A1A;filter:url(#sketchy)">
+          <div style="width:11.3%;background:#3B6FE0;display:flex;align-items:center;justify-content:center;font-family:'Inter',sans-serif;font-size:10px;color:white;font-weight:600">AAPL</div>
+          <div style="width:37.5%;background:#3E9B6B;display:flex;align-items:center;justify-content:center;font-family:'Inter',sans-serif;font-size:10px;color:white;font-weight:600">NVDA</div>
+          <div style="width:14.7%;background:#D9695E;display:flex;align-items:center;justify-content:center;font-family:'Inter',sans-serif;font-size:10px;color:white;font-weight:600">TSLA</div>
+          <div style="width:16.2%;background:#8B5CF6;display:flex;align-items:center;justify-content:center;font-family:'Inter',sans-serif;font-size:10px;color:white;font-weight:600">MSFT</div>
+          <div style="width:4.4%;background:#F59E0B"></div>
+          <div style="width:13.5%;background:#6366F1;display:flex;align-items:center;justify-content:center;font-family:'Inter',sans-serif;font-size:10px;color:white;font-weight:600">META</div>
+        </div>
+      </div>
+
+      <!-- Detailed positions table -->
+      <div style="background:#F7F3EA;border:2.5px solid #1A1A1A;border-radius:12px;padding:24px 28px;box-shadow:3px 4px 0px rgba(0,0,0,0.07);filter:url(#sketchyBorder)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+          <div style="font-family:'Caveat',cursive;font-size:23px;font-weight:700;color:#1A1A1A">All Positions</div>
+          <div style="display:flex;gap:8px">
+            <div style="padding:6px 14px;background:#C9DFF5;border:2px solid #1A1A1A;border-radius:6px;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;color:#1A1A1A;filter:url(#sketchy)">All</div>
+            <div style="padding:6px 14px;background:#FEFDF9;border:2px solid #1A1A1A;border-radius:6px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;color:#1A1A1A;cursor:pointer;filter:url(#sketchy)">Winners</div>
+            <div style="padding:6px 14px;background:#FEFDF9;border:2px solid #1A1A1A;border-radius:6px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;color:#1A1A1A;cursor:pointer;filter:url(#sketchy)">Losers</div>
+          </div>
+        </div>
+        <!-- Table header -->
+        <div style="display:flex;align-items:center;padding:10px 0;border-bottom:2px solid #1A1A1A;margin-bottom:4px">
+          <div style="flex:0 0 90px;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;color:#6B7280;text-transform:uppercase;letter-spacing:0.5px">Ticker</div>
+          <div style="flex:0 0 90px;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;color:#6B7280;text-transform:uppercase;letter-spacing:0.5px">Shares</div>
+          <div style="flex:0 0 100px;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;color:#6B7280;text-transform:uppercase;letter-spacing:0.5px">Avg Cost</div>
+          <div style="flex:0 0 100px;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;color:#6B7280;text-transform:uppercase;letter-spacing:0.5px">Current</div>
+          <div style="flex:1"></div>
+          <div style="flex:0 0 100px;text-align:right;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;color:#6B7280;text-transform:uppercase;letter-spacing:0.5px">Value</div>
+          <div style="flex:0 0 140px;text-align:right;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;color:#6B7280;text-transform:uppercase;letter-spacing:0.5px">Gain/Loss</div>
+        </div>
+        <sc-for list="{{ positionsFull }}" as="pos" hint-placeholder-count="6">
+          <div style="display:flex;align-items:center;padding:16px 0" style-hover="background:rgba(201,223,245,0.2);margin:0 -12px;padding:16px 12px;border-radius:6px">
+            <div style="flex:0 0 90px">
+              <div style="font-family:'Caveat',cursive;font-size:20px;font-weight:700;color:#1A1A1A">{{ pos.ticker }}</div>
+            </div>
+            <div style="flex:0 0 90px;font-family:'Inter',sans-serif;font-size:14px;color:#1A1A1A">{{ pos.shares }}</div>
+            <div style="flex:0 0 100px;font-family:'Inter',sans-serif;font-size:14px;color:#6B7280">{{ pos.avgCost }}</div>
+            <div style="flex:0 0 100px;font-family:'Inter',sans-serif;font-size:14px;color:#1A1A1A">{{ pos.current }}</div>
+            <div style="flex:1"></div>
+            <div style="flex:0 0 100px;text-align:right;font-family:'Inter',sans-serif;font-size:15px;font-weight:500;color:#1A1A1A">{{ pos.value }}</div>
+            <div style="flex:0 0 140px;text-align:right;font-family:'Inter',sans-serif;font-size:14px;font-weight:600">
+              <span style="{{ pos.changeStyle }}">{{ pos.change }}</span>
+            </div>
+          </div>
+          <sc-if value="{{ pos.showDivider }}" hint-placeholder-val="{{ true }}">
+            <div style="border-bottom:1.5px dashed #d0cec6"></div>
+          </sc-if>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ==================== ACTIVITY LOG TAB ==================== -->
+  <sc-if value="{{ isActivity }}" hint-placeholder-val="{{ false }}">
+    <div style="animation:fadeUp 0.4s ease-out both">
+      <div style="background:#F7F3EA;border:2.5px solid #1A1A1A;border-radius:12px;padding:24px 28px;box-shadow:3px 4px 0px rgba(0,0,0,0.07);filter:url(#sketchyBorder)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
+          <div style="font-family:'Caveat',cursive;font-size:23px;font-weight:700;color:#1A1A1A">Activity Log</div>
+          <div style="display:flex;gap:8px">
+            <div style="padding:6px 14px;background:#C9DFF5;border:2px solid #1A1A1A;border-radius:6px;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;color:#1A1A1A;filter:url(#sketchy)">All</div>
+            <div style="padding:6px 14px;background:#FEFDF9;border:2px solid #1A1A1A;border-radius:6px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;color:#1A1A1A;cursor:pointer;filter:url(#sketchy)">Buys</div>
+            <div style="padding:6px 14px;background:#FEFDF9;border:2px solid #1A1A1A;border-radius:6px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;color:#1A1A1A;cursor:pointer;filter:url(#sketchy)">Sells</div>
+            <div style="padding:6px 14px;background:#FEFDF9;border:2px solid #1A1A1A;border-radius:6px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;color:#1A1A1A;cursor:pointer;filter:url(#sketchy)">Dividends</div>
+          </div>
+        </div>
+        <sc-for list="{{ activityLog }}" as="item" hint-placeholder-count="8">
+          <div style="display:flex;align-items:center;padding:16px 0;gap:16px" style-hover="background:rgba(201,223,245,0.2);margin:0 -12px;padding:16px 12px;border-radius:6px">
+            <div style="{{ item.iconStyle }}">{{ item.icon }}</div>
+            <div style="flex:1">
+              <div style="display:flex;align-items:baseline;gap:8px">
+                <span style="font-family:'Caveat',cursive;font-size:19px;font-weight:700;color:#1A1A1A">{{ item.title }}</span>
+                <span style="font-family:'Inter',sans-serif;font-size:12px;color:#6B7280">{{ item.subtitle }}</span>
+              </div>
+              <div style="font-family:'Inter',sans-serif;font-size:13px;color:#6B7280;margin-top:2px">{{ item.detail }}</div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-family:'Inter',sans-serif;font-size:15px;font-weight:600;{{ item.amountColor }}">{{ item.amount }}</div>
+              <div style="font-family:'Inter',sans-serif;font-size:12px;color:#6B7280">{{ item.date }}</div>
+            </div>
+          </div>
+          <sc-if value="{{ item.showDivider }}" hint-placeholder-val="{{ true }}">
+            <div style="border-bottom:1.5px dashed #d0cec6"></div>
+          </sc-if>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ==================== SETTINGS TAB ==================== -->
+  <sc-if value="{{ isSettings }}" hint-placeholder-val="{{ false }}">
+    <div style="animation:fadeUp 0.4s ease-out both">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+        <!-- Account Settings -->
+        <div style="background:#F7F3EA;border:2.5px solid #1A1A1A;border-radius:12px;padding:24px 28px;box-shadow:3px 4px 0px rgba(0,0,0,0.07);filter:url(#sketchyBorder)">
+          <div style="font-family:'Caveat',cursive;font-size:23px;font-weight:700;color:#1A1A1A;margin-bottom:20px">Account</div>
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <div>
+              <div style="font-family:'Inter',sans-serif;font-size:12px;font-weight:600;color:#6B7280;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Account Name</div>
+              <div style="padding:10px 14px;background:#FEFDF9;border:2px solid #1A1A1A;border-radius:6px;font-family:'Inter',sans-serif;font-size:14px;color:#1A1A1A;filter:url(#sketchy)">My Paper Portfolio</div>
+            </div>
+            <div>
+              <div style="font-family:'Inter',sans-serif;font-size:12px;font-weight:600;color:#6B7280;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Starting Balance</div>
+              <div style="padding:10px 14px;background:#FEFDF9;border:2px solid #1A1A1A;border-radius:6px;font-family:'Inter',sans-serif;font-size:14px;color:#1A1A1A;filter:url(#sketchy)">$100,000.00</div>
+            </div>
+            <div>
+              <div style="font-family:'Inter',sans-serif;font-size:12px;font-weight:600;color:#6B7280;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Account Created</div>
+              <div style="padding:10px 14px;background:#FEFDF9;border:2px solid #1A1A1A;border-radius:6px;font-family:'Inter',sans-serif;font-size:14px;color:#6B7280;filter:url(#sketchy)">January 15, 2026</div>
+            </div>
+            <div style="display:flex;gap:12px;margin-top:8px">
+              <div style="padding:10px 20px;background:#D9695E;border:2.5px solid #1A1A1A;border-radius:8px;font-family:'Inter',sans-serif;font-size:14px;font-weight:500;color:white;cursor:pointer;filter:url(#sketchyBorder)" style-hover="opacity:0.9">Reset Account</div>
+            </div>
+          </div>
+        </div>
+        <!-- Display Preferences -->
+        <div style="background:#F7F3EA;border:2.5px solid #1A1A1A;border-radius:12px;padding:24px 28px;box-shadow:3px 4px 0px rgba(0,0,0,0.07);filter:url(#sketchyBorder)">
+          <div style="font-family:'Caveat',cursive;font-size:23px;font-weight:700;color:#1A1A1A;margin-bottom:20px">Preferences</div>
+          <div style="display:flex;flex-direction:column;gap:18px">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div style="font-family:'Inter',sans-serif;font-size:14px;color:#1A1A1A">Show sparklines in positions</div>
+              <div style="width:44px;height:24px;border-radius:12px;background:#3E9B6B;border:2px solid #1A1A1A;position:relative;cursor:pointer;filter:url(#sketchy)">
+                <div style="width:18px;height:18px;border-radius:50%;background:white;position:absolute;top:1px;right:1px;border:1.5px solid #1A1A1A"></div>
+              </div>
+            </div>
+            <div style="border-bottom:1.5px dashed #d0cec6"></div>
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div style="font-family:'Inter',sans-serif;font-size:14px;color:#1A1A1A">Show daily change card</div>
+              <div style="width:44px;height:24px;border-radius:12px;background:#3E9B6B;border:2px solid #1A1A1A;position:relative;cursor:pointer;filter:url(#sketchy)">
+                <div style="width:18px;height:18px;border-radius:50%;background:white;position:absolute;top:1px;right:1px;border:1.5px solid #1A1A1A"></div>
+              </div>
+            </div>
+            <div style="border-bottom:1.5px dashed #d0cec6"></div>
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div style="font-family:'Inter',sans-serif;font-size:14px;color:#1A1A1A">Compact position rows</div>
+              <div style="width:44px;height:24px;border-radius:12px;background:#e0e2e6;border:2px solid #1A1A1A;position:relative;cursor:pointer;filter:url(#sketchy)">
+                <div style="width:18px;height:18px;border-radius:50%;background:white;position:absolute;top:1px;left:1px;border:1.5px solid #1A1A1A"></div>
+              </div>
+            </div>
+            <div style="border-bottom:1.5px dashed #d0cec6"></div>
+            <div>
+              <div style="font-family:'Inter',sans-serif;font-size:14px;color:#1A1A1A;margin-bottom:8px">Default chart period</div>
+              <div style="display:flex;gap:0">
+                <div style="padding:8px 16px;background:#FEFDF9;border:2px solid #1A1A1A;border-radius:6px 0 0 6px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;color:#1A1A1A;cursor:pointer;filter:url(#sketchy)">1M</div>
+                <div style="padding:8px 16px;background:#FEFDF9;border:2px solid #1A1A1A;border-left:none;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;color:#1A1A1A;cursor:pointer;filter:url(#sketchy)">3M</div>
+                <div style="padding:8px 16px;background:#C9DFF5;border:2px solid #1A1A1A;border-left:none;border-radius:0 6px 6px 0;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;color:#1A1A1A;cursor:pointer;filter:url(#sketchy)">1Y</div>
+              </div>
+            </div>
+            <div style="border-bottom:1.5px dashed #d0cec6"></div>
+            <div>
+              <div style="font-family:'Inter',sans-serif;font-size:14px;color:#1A1A1A;margin-bottom:8px">Currency display</div>
+              <div style="padding:10px 14px;background:#FEFDF9;border:2px solid #1A1A1A;border-radius:6px;font-family:'Inter',sans-serif;font-size:14px;color:#1A1A1A;filter:url(#sketchy);display:flex;align-items:center;justify-content:space-between;cursor:pointer">
+                <span>USD ($)</span>
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#6B7280" stroke-width="2" stroke-linecap="round"><path d="M3 5l3 3 3-3"></path></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+
+class Component extends DCLogic {
+  state = { activeTab: 'overview', showExport: false };
+
+  renderVals() {
+    const { activeTab, showExport } = this.state;
+    const setTab = (tab) => () => this.setState({ activeTab: tab, showExport: false });
+
+    const tabNames = ['Overview', 'Positions', 'Activity Log', 'Settings'];
+    const tabKeys = ['overview', 'positions', 'activity', 'settings'];
+    const activeStyle = 'padding:12px 24px;background:#C9DFF5;border:2.5px solid #1A1A1A;border-radius:8px;font-family:Inter,sans-serif;font-size:16px;font-weight:600;color:#1A1A1A;cursor:pointer;filter:url(#sketchyBorder)';
+    const inactiveStyle = 'padding:12px 24px;background:#FEFDF9;border:2.5px solid #1A1A1A;border-radius:8px;font-family:Inter,sans-serif;font-size:16px;font-weight:500;color:#1A1A1A;cursor:pointer;box-shadow:2px 3px 0px rgba(0,0,0,0.08);filter:url(#sketchyBorder)';
+
+    const tabs = tabNames.map((label, i) => ({
+      label,
+      onClick: setTab(tabKeys[i]),
+      style: activeTab === tabKeys[i] ? activeStyle : inactiveStyle,
+      hoverStyle: activeTab === tabKeys[i] ? '' : 'background:#e8f0fb'
+    }));
+
+    // Positions data
+    const positions = [
+      { ticker: 'AAPL', shares: '12 shares', value: '$2,940', change: '+$184 (+6.7%)', positive: true },
+      { ticker: 'NVDA', shares: '8 shares', value: '$9,760', change: '+$1,240 (+14.6%)', positive: true },
+      { ticker: 'TSLA', shares: '15 shares', value: '$3,825', change: '-$310 (-7.5%)', positive: false },
+      { ticker: 'MSFT', shares: '10 shares', value: '$4,210', change: '+$95 (+2.3%)', positive: true },
+      { ticker: 'AMZN', shares: '6 shares', value: '$1,140', change: '-$52 (-4.4%)', positive: false },
+      { ticker: 'META', shares: '9 shares', value: '$3,510', change: '+$268 (+8.3%)', positive: true },
+    ];
+    const sparklines = [
+      'M0,12 Q5,10 10,8 T20,5 T30,3 T40,2',
+      'M0,14 Q8,12 12,8 T24,4 T32,2 T40,1',
+      'M0,3 Q8,4 14,7 T24,10 T32,12 T40,14',
+      'M0,8 Q8,7 14,7 T24,6 T32,6 T40,5',
+      'M0,4 Q8,5 14,7 T24,9 T32,11 T40,13',
+      'M0,13 Q6,11 12,8 T22,5 T32,3 T40,2',
+    ];
+    const posData = positions.map((p, i) => ({
+      ...p,
+      changeStyle: `color: ${p.positive ? '#3E9B6B' : '#D9695E'}`,
+      showDivider: i < positions.length - 1,
+      sparkline: React.createElement('svg', {
+        width: 44, height: 16, viewBox: '0 0 40 16',
+        style: { marginLeft: 8, flexShrink: 0 }
+      }, React.createElement('path', {
+        d: sparklines[i], fill: 'none',
+        stroke: p.positive ? '#3E9B6B' : '#D9695E',
+        strokeWidth: 2, strokeLinecap: 'round',
+        style: { filter: 'url(#sketchy)' }
+      }))
+    }));
+
+    // Full positions for Positions tab
+    const positionsFull = [
+      { ticker: 'AAPL', shares: '12', avgCost: '$229.67', current: '$245.00', value: '$2,940', change: '+$184 (+6.7%)', positive: true },
+      { ticker: 'NVDA', shares: '8', avgCost: '$1,065.00', current: '$1,220.00', value: '$9,760', change: '+$1,240 (+14.6%)', positive: true },
+      { ticker: 'TSLA', shares: '15', avgCost: '$275.67', current: '$255.00', value: '$3,825', change: '-$310 (-7.5%)', positive: false },
+      { ticker: 'MSFT', shares: '10', avgCost: '$411.50', current: '$421.00', value: '$4,210', change: '+$95 (+2.3%)', positive: true },
+      { ticker: 'AMZN', shares: '6', avgCost: '$198.67', current: '$190.00', value: '$1,140', change: '-$52 (-4.4%)', positive: false },
+      { ticker: 'META', shares: '9', avgCost: '$360.22', current: '$390.00', value: '$3,510', change: '+$268 (+8.3%)', positive: true },
+    ].map((p, i, arr) => ({
+      ...p,
+      changeStyle: `color: ${p.positive ? '#3E9B6B' : '#D9695E'}`,
+      showDivider: i < arr.length - 1
+    }));
+
+    // Recent trades
+    const badgeBase = 'width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;';
+    const smallBuyIcon = React.createElement('svg', { width: 12, height: 12, viewBox: '0 0 16 16', fill: 'none', stroke: '#3E9B6B', strokeWidth: 2.5, strokeLinecap: 'round', strokeLinejoin: 'round' }, [
+      React.createElement('path', { key: 'a', d: 'M8 13V3' }),
+      React.createElement('path', { key: 'b', d: 'M3 8l5-5 5 5' })
+    ]);
+    const smallSellIcon = React.createElement('svg', { width: 12, height: 12, viewBox: '0 0 16 16', fill: 'none', stroke: '#D9695E', strokeWidth: 2.5, strokeLinecap: 'round', strokeLinejoin: 'round' }, [
+      React.createElement('path', { key: 'a', d: 'M8 3v10' }),
+      React.createElement('path', { key: 'b', d: 'M3 8l5 5 5-5' })
+    ]);
+    const recentTrades = [
+      { type: smallBuyIcon, ticker: 'NVDA', desc: 'Buy · 3 shares', amount: '$3,660', date: 'Today', badgeStyle: badgeBase + 'background:#D4F0DE', showDivider: true },
+      { type: smallSellIcon, ticker: 'TSLA', desc: 'Sell · 5 shares', amount: '$1,275', date: 'Yesterday', badgeStyle: badgeBase + 'background:#FBEFC7', showDivider: true },
+      { type: smallBuyIcon, ticker: 'AAPL', desc: 'Buy · 4 shares', amount: '$980', date: 'Jul 15', badgeStyle: badgeBase + 'background:#D6E8FB', showDivider: false },
+    ];
+
+    // Activity log
+    const iconBase = 'width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;';
+    const buyIcon = React.createElement('svg', { width: 16, height: 16, viewBox: '0 0 16 16', fill: 'none', stroke: '#3E9B6B', strokeWidth: 2.2, strokeLinecap: 'round', strokeLinejoin: 'round' }, [
+      React.createElement('path', { key: 'a', d: 'M8 13V3' }),
+      React.createElement('path', { key: 'b', d: 'M3 8l5-5 5 5' })
+    ]);
+    const sellIcon = React.createElement('svg', { width: 16, height: 16, viewBox: '0 0 16 16', fill: 'none', stroke: '#D9695E', strokeWidth: 2.2, strokeLinecap: 'round', strokeLinejoin: 'round' }, [
+      React.createElement('path', { key: 'a', d: 'M8 3v10' }),
+      React.createElement('path', { key: 'b', d: 'M3 8l5 5 5-5' })
+    ]);
+    const divIcon = React.createElement('svg', { width: 16, height: 16, viewBox: '0 0 16 16', fill: 'none', stroke: '#8B5CF6', strokeWidth: 1.8, strokeLinecap: 'round' }, [
+      React.createElement('circle', { key: 'a', cx: 8, cy: 8, r: 6 }),
+      React.createElement('path', { key: 'b', d: 'M8 5v6' }),
+      React.createElement('path', { key: 'c', d: 'M5.5 8h5' })
+    ]);
+    const activityLog = [
+      { icon: buyIcon, iconStyle: iconBase + 'background:#D4F0DE', title: 'NVDA', subtitle: 'Market Buy', detail: 'Bought 3 shares at $1,220.00', amount: '-$3,660.00', amountColor: 'color:#1A1A1A', date: 'Jul 18, 2026', showDivider: true },
+      { icon: sellIcon, iconStyle: iconBase + 'background:#FBEFC7', title: 'TSLA', subtitle: 'Market Sell', detail: 'Sold 5 shares at $255.00', amount: '+$1,275.00', amountColor: 'color:#3E9B6B', date: 'Jul 17, 2026', showDivider: true },
+      { icon: buyIcon, iconStyle: iconBase + 'background:#D6E8FB', title: 'AAPL', subtitle: 'Market Buy', detail: 'Bought 4 shares at $245.00', amount: '-$980.00', amountColor: 'color:#1A1A1A', date: 'Jul 15, 2026', showDivider: true },
+      { icon: divIcon, iconStyle: iconBase + 'background:#E8DFFA', title: 'MSFT', subtitle: 'Dividend', detail: 'Quarterly dividend · $0.75/share', amount: '+$7.50', amountColor: 'color:#3E9B6B', date: 'Jul 12, 2026', showDivider: true },
+      { icon: buyIcon, iconStyle: iconBase + 'background:#D4F0DE', title: 'META', subtitle: 'Limit Buy', detail: 'Bought 9 shares at $360.22', amount: '-$3,241.98', amountColor: 'color:#1A1A1A', date: 'Jul 8, 2026', showDivider: true },
+      { icon: sellIcon, iconStyle: iconBase + 'background:#FBEFC7', title: 'AMZN', subtitle: 'Market Sell', detail: 'Sold 2 shares at $195.50', amount: '+$391.00', amountColor: 'color:#3E9B6B', date: 'Jul 5, 2026', showDivider: true },
+      { icon: buyIcon, iconStyle: iconBase + 'background:#D6E8FB', title: 'NVDA', subtitle: 'Market Buy', detail: 'Bought 5 shares at $1,065.00', amount: '-$5,325.00', amountColor: 'color:#1A1A1A', date: 'Jun 28, 2026', showDivider: true },
+      { icon: divIcon, iconStyle: iconBase + 'background:#E8DFFA', title: 'AAPL', subtitle: 'Dividend', detail: 'Quarterly dividend · $0.25/share', amount: '+$3.00', amountColor: 'color:#3E9B6B', date: 'Jun 20, 2026', showDivider: false },
+    ];
+
+    // Chart
+    const chartW = 480, chartH = 220;
+    const mx = 40, my = 20, cw = chartW - mx - 20, ch = chartH - my - 35;
+    const points = [
+      [0, 0.85], [0.08, 0.78], [0.16, 0.72], [0.22, 0.55], [0.30, 0.45],
+      [0.38, 0.32], [0.45, 0.22], [0.52, 0.18], [0.58, 0.24], [0.65, 0.28],
+      [0.72, 0.35], [0.80, 0.42], [0.86, 0.38], [0.92, 0.30], [1, 0.25]
+    ];
+    const chartPts = points.map(([x, y]) => [mx + x * cw, my + y * ch]);
+    let pathD = `M${chartPts[0][0]},${chartPts[0][1]}`;
+    for (let i = 1; i < chartPts.length; i++) {
+      const [px, py] = chartPts[i - 1];
+      const [cx, cy] = chartPts[i];
+      pathD += ` C${px + (cx - px) * 0.4},${py} ${px + (cx - px) * 0.6},${cy} ${cx},${cy}`;
+    }
+    const dotIndices = [0, 3, 7, 12, 14];
+    const months = ['Jul', 'Sep', 'Nov', 'Jan', 'Mar', 'May', 'Jul'];
+    const gridYs = [0.25, 0.5, 0.75].map(f => my + f * ch);
+
+    const chartSvg = React.createElement('svg', {
+      width: '100%', viewBox: `0 0 ${chartW} ${chartH}`, style: { display: 'block' }
+    }, [
+      ...gridYs.map((gy, i) => React.createElement('line', {
+        key: `g${i}`, x1: mx, y1: gy, x2: mx + cw, y2: gy,
+        stroke: '#b0ada5', strokeWidth: 1.2, strokeDasharray: '8,6', opacity: 0.4,
+        style: { filter: 'url(#sketchy)' }
+      })),
+      React.createElement('line', { key: 'ya', x1: mx, y1: my - 5, x2: mx, y2: my + ch, stroke: '#1A1A1A', strokeWidth: 2.2, strokeLinecap: 'round', style: { filter: 'url(#sketchy)' } }),
+      React.createElement('line', { key: 'xa', x1: mx, y1: my + ch, x2: mx + cw + 5, y2: my + ch, stroke: '#1A1A1A', strokeWidth: 2.2, strokeLinecap: 'round', style: { filter: 'url(#sketchy)' } }),
+      React.createElement('path', {
+        key: 'line', d: pathD, fill: 'none', stroke: '#1A1A1A', strokeWidth: 2.5, strokeLinecap: 'round',
+        style: { filter: 'url(#sketchy)', strokeDasharray: 1000, strokeDashoffset: 0, animation: 'drawIn 1.2s ease-out' }
+      }),
+      ...dotIndices.map((di, i) => React.createElement('circle', {
+        key: `d${i}`, cx: chartPts[di][0], cy: chartPts[di][1], r: 5, fill: '#3B6FE0', stroke: '#3B6FE0', strokeWidth: 0
+      })),
+      ...months.map((m, i) => React.createElement('text', {
+        key: `l${i}`, x: mx + (i / (months.length - 1)) * cw, y: my + ch + 22,
+        textAnchor: 'middle', style: { fontFamily: "'Inter',sans-serif", fontSize: '13px', fill: '#6B7280' }
+      }, m)),
+    ]);
+
+    return {
+      tabs,
+      isOverview: activeTab === 'overview',
+      isPositions: activeTab === 'positions',
+      isActivity: activeTab === 'activity',
+      isSettings: activeTab === 'settings',
+      showExport,
+      toggleExport: () => this.setState(s => ({ showExport: !s.showExport })),
+      goSettings: () => this.setState({ activeTab: 'settings', showExport: false }),
+      chartSvg,
+      positions: posData,
+      positionsFull,
+      recentTrades,
+      activityLog,
+    };
+  }
+}
+
+</script>
+</body>
+</html>
