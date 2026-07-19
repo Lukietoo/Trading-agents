@@ -40,5 +40,9 @@ positions, expressed as percentage weights.
     credit/debit, not sign — credits render green, debit amounts render ink.
     A buy is spending, not a loss.
 - The frontend's TypeScript types (`frontend/src/types/`) define the data
-  contract the future backend (TradingAgents + Alpaca paper API service) must
-  conform to — the frontend leads, the backend follows.
+  contract the backend (a Claude Code–driven FastAPI service wrapping the
+  Alpaca paper API) must conform to — the frontend leads, the backend follows.
+- Numeric wire contract: the API sends raw numbers (percentages rounded to
+  two decimals), never display strings. All formatting — currency and percent
+  strings, sign-derived green/coral color — lives in the frontend's
+  formatting layer.

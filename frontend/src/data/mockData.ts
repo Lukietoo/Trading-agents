@@ -6,17 +6,9 @@ import type {
   ActivityEntry,
   AllocationSlice,
   PortfolioChartData,
-  PortfolioSummary,
   Position,
   TradeEntry,
 } from "@/types"
-
-export const portfolioSummary: PortfolioSummary = {
-  portfolioValue: { value: "$104,820", note: "+4.8% from last week" },
-  cash: { value: "$18,340", note: "17.5% of portfolio" },
-  totalPnl: { value: "+$4,820", positive: true, note: "+4.8% all-time" },
-  dailyChange: { value: "-$312", positive: false, note: "-0.3% since open" },
-}
 
 const sparklinePaths = [
   "M0,12 Q5,10 10,8 T20,5 T30,3 T40,2",

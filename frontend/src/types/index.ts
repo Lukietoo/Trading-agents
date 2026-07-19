@@ -1,6 +1,6 @@
 // Core data shapes for the paper trading dashboard.
-// These types define the contract the future backend API must conform to
-// (custom Python service wrapping TradingAgents + Alpaca paper trading).
+// These types define the contract the backend API must conform to
+// (FastAPI service driven by Claude Code, wrapping the Alpaca paper API).
 
 export type BadgeColor = "blue" | "green" | "purple" | "yellow"
 
@@ -10,6 +10,19 @@ export interface SummaryStat {
   /** Omitted for stats rendered in a fixed color (Portfolio Value, Cash). */
   positive?: boolean
   note: string
+}
+
+/** GET /api/snapshot response — raw numbers per the numeric wire contract. */
+export interface Snapshot {
+  portfolioValue: number
+  cash: number
+  totalPnl: number
+  totalPnlPct: number
+  dailyChange: number
+  dailyChangePct: number
+  cashPct: number
+  /** Null until the account has a week of portfolio history. */
+  weekChangePct: number | null
 }
 
 export interface PortfolioSummary {
