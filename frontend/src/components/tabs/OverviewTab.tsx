@@ -51,7 +51,6 @@ export function OverviewTab() {
   const summary = usePortfolioSummary()
   const positions = usePositions()
   const trades = useRecentTrades()
-  // Visual-only toggle: the spec defines a single chart dataset.
   const [period, setPeriod] = useState<ChartPeriod>("1Y")
 
   return (
@@ -70,7 +69,7 @@ export function OverviewTab() {
               <div className="font-hand text-[23px] font-bold text-ink">Portfolio Value</div>
               <SegmentedControl options={CHART_PERIODS} active={period} onChange={setPeriod} />
             </div>
-            <PortfolioChart />
+            <PortfolioChart period={period} />
           </SketchCard>
 
           <SketchCard delay={0.7} className="flex-1 px-6 py-5">
