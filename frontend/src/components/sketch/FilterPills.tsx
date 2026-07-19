@@ -1,5 +1,10 @@
 import { cn } from "@/lib/utils"
 
+// Chart period options shared by the Overview chart toggle and the Settings
+// "Default chart period" segmented control.
+export const CHART_PERIODS = ["1M", "3M", "1Y"] as const
+export type ChartPeriod = (typeof CHART_PERIODS)[number]
+
 // Small sketchy filter pills (All/Winners/Losers etc.). Separate rounded
 // buttons with 8px gap; active pill is pastel blue and semibold.
 export function FilterPills<T extends string>({

@@ -12,16 +12,10 @@ import type {
 } from "@/types"
 
 export const portfolioSummary: PortfolioSummary = {
-  portfolioValue: "$104,820",
-  portfolioValueNote: "+4.8% from last week",
-  cash: "$18,340",
-  cashNote: "17.5% of portfolio",
-  totalPnl: "+$4,820",
-  totalPnlPositive: true,
-  totalPnlNote: "+4.8% all-time",
-  dailyChange: "-$312",
-  dailyChangePositive: false,
-  dailyChangeNote: "-0.3% since open",
+  portfolioValue: { value: "$104,820", note: "+4.8% from last week" },
+  cash: { value: "$18,340", note: "17.5% of portfolio" },
+  totalPnl: { value: "+$4,820", positive: true, note: "+4.8% all-time" },
+  dailyChange: { value: "-$312", positive: false, note: "-0.3% since open" },
 }
 
 const sparklinePaths = [
@@ -34,18 +28,18 @@ const sparklinePaths = [
 ]
 
 export const positions: Position[] = [
-  { ticker: "AAPL", shares: 12, avgCost: "$229.67", current: "$245.00", value: "$2,940", change: "+$184 (+6.7%)", positive: true, sparklinePath: sparklinePaths[0] },
-  { ticker: "NVDA", shares: 8, avgCost: "$1,065.00", current: "$1,220.00", value: "$9,760", change: "+$1,240 (+14.6%)", positive: true, sparklinePath: sparklinePaths[1] },
-  { ticker: "TSLA", shares: 15, avgCost: "$275.67", current: "$255.00", value: "$3,825", change: "-$310 (-7.5%)", positive: false, sparklinePath: sparklinePaths[2] },
-  { ticker: "MSFT", shares: 10, avgCost: "$411.50", current: "$421.00", value: "$4,210", change: "+$95 (+2.3%)", positive: true, sparklinePath: sparklinePaths[3] },
-  { ticker: "AMZN", shares: 6, avgCost: "$198.67", current: "$190.00", value: "$1,140", change: "-$52 (-4.4%)", positive: false, sparklinePath: sparklinePaths[4] },
-  { ticker: "META", shares: 9, avgCost: "$360.22", current: "$390.00", value: "$3,510", change: "+$268 (+8.3%)", positive: true, sparklinePath: sparklinePaths[5] },
+  { ticker: "AAPL", shares: 12, avgCost: "$229.67", currentPrice: "$245.00", value: "$2,940", change: "+$184 (+6.7%)", positive: true, sparklinePath: sparklinePaths[0] },
+  { ticker: "NVDA", shares: 8, avgCost: "$1,065.00", currentPrice: "$1,220.00", value: "$9,760", change: "+$1,240 (+14.6%)", positive: true, sparklinePath: sparklinePaths[1] },
+  { ticker: "TSLA", shares: 15, avgCost: "$275.67", currentPrice: "$255.00", value: "$3,825", change: "-$310 (-7.5%)", positive: false, sparklinePath: sparklinePaths[2] },
+  { ticker: "MSFT", shares: 10, avgCost: "$411.50", currentPrice: "$421.00", value: "$4,210", change: "+$95 (+2.3%)", positive: true, sparklinePath: sparklinePaths[3] },
+  { ticker: "AMZN", shares: 6, avgCost: "$198.67", currentPrice: "$190.00", value: "$1,140", change: "-$52 (-4.4%)", positive: false, sparklinePath: sparklinePaths[4] },
+  { ticker: "META", shares: 9, avgCost: "$360.22", currentPrice: "$390.00", value: "$3,510", change: "+$268 (+8.3%)", positive: true, sparklinePath: sparklinePaths[5] },
 ]
 
 export const recentTrades: TradeEntry[] = [
-  { ticker: "NVDA", side: "buy", desc: "Buy · 3 shares", amount: "$3,660", date: "Today", badge: "green" },
-  { ticker: "TSLA", side: "sell", desc: "Sell · 5 shares", amount: "$1,275", date: "Yesterday", badge: "yellow" },
-  { ticker: "AAPL", side: "buy", desc: "Buy · 4 shares", amount: "$980", date: "Jul 15", badge: "blue" },
+  { ticker: "NVDA", side: "buy", summary: "Buy · 3 shares", amount: "$3,660", date: "Today", badge: "green" },
+  { ticker: "TSLA", side: "sell", summary: "Sell · 5 shares", amount: "$1,275", date: "Yesterday", badge: "yellow" },
+  { ticker: "AAPL", side: "buy", summary: "Buy · 4 shares", amount: "$980", date: "Jul 15", badge: "blue" },
 ]
 
 export const activityLog: ActivityEntry[] = [

@@ -1,4 +1,4 @@
-import { usePortfolioChart } from "@/hooks/usePortfolio"
+import { usePortfolioChart } from "@/hooks/portfolio"
 
 // Hand-rolled SVG line chart, an exact port of the reference prototype:
 // L-shaped ink axes, 3 dashed gridlines, smooth cubic curve with blue dots,

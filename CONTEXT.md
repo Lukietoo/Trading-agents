@@ -36,6 +36,9 @@ positions, expressed as percentage weights.
 
 - Positive amounts and percentages render green; negative render coral. This
   is semantic and independent of any decorative badge colors.
+  - Exception (per the design reference): activity-log amounts color by
+    credit/debit, not sign — credits render green, debit amounts render ink.
+    A buy is spending, not a loss.
 - The frontend's TypeScript types (`frontend/src/types/`) define the data
   contract the future backend (TradingAgents + Alpaca paper API service) must
   conform to — the frontend leads, the backend follows.

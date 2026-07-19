@@ -4,24 +4,26 @@
 
 export type BadgeColor = "blue" | "green" | "purple" | "yellow"
 
+/** One headline stat card: display value, direction, and the note beneath. */
+export interface SummaryStat {
+  value: string
+  /** Omitted for stats rendered in a fixed color (Portfolio Value, Cash). */
+  positive?: boolean
+  note: string
+}
+
 export interface PortfolioSummary {
-  portfolioValue: string
-  portfolioValueNote: string
-  cash: string
-  cashNote: string
-  totalPnl: string
-  totalPnlPositive: boolean
-  totalPnlNote: string
-  dailyChange: string
-  dailyChangePositive: boolean
-  dailyChangeNote: string
+  portfolioValue: SummaryStat
+  cash: SummaryStat
+  totalPnl: SummaryStat
+  dailyChange: SummaryStat
 }
 
 export interface Position {
   ticker: string
   shares: number
   avgCost: string
-  current: string
+  currentPrice: string
   value: string
   /** e.g. "+$184 (+6.7%)" */
   change: string
@@ -36,7 +38,8 @@ export type TradeSide = "buy" | "sell"
 export interface TradeEntry {
   ticker: string
   side: TradeSide
-  desc: string
+  /** Display line under the ticker, e.g. "Buy · 3 shares". */
+  summary: string
   amount: string
   date: string
   badge: BadgeColor
@@ -50,7 +53,8 @@ export interface ActivityEntry {
   subtitle: string
   detail: string
   amount: string
-  /** Credits (sells, dividends) render green; debits render ink. */
+  /** Credits (sells, dividends) render green; debit amounts render ink —
+      the documented exception to the green/coral rule (CONTEXT.md). */
   credit: boolean
   date: string
   badge: BadgeColor

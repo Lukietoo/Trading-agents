@@ -1,4 +1,4 @@
-import { useAllocation } from "@/hooks/usePortfolio"
+import { useAllocation } from "@/hooks/portfolio"
 
 // Horizontal stacked allocation bar: 28px tall, 2px ink border, sketchy
 // wobble, white 10px semibold labels inside each wide-enough segment.

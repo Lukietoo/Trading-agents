@@ -6,7 +6,7 @@ export function Sparkline({ path, positive }: { path: string; positive: boolean 
       <path
         d={path}
         fill="none"
-        stroke={positive ? "#3E9B6B" : "#D9695E"}
+        stroke={positive ? "var(--color-positive)" : "var(--color-negative)"}
         strokeWidth={2}
         strokeLinecap="round"
         style={{ filter: "url(#sketchy)" }}

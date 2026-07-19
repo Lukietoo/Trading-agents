@@ -28,6 +28,28 @@ export function DashedDivider({ className }: { className?: string }) {
   return <div className={cn("border-b-[1.5px] border-dashed border-divider", className)} />
 }
 
+// List rows with dashed dividers between them (none after the last row).
+export function DividedList<T>({
+  items,
+  itemKey,
+  renderItem,
+}: {
+  items: readonly T[]
+  itemKey: (item: T) => string
+  renderItem: (item: T) => ReactNode
+}) {
+  return (
+    <>
+      {items.map((item, i) => (
+        <div key={itemKey(item)}>
+          {renderItem(item)}
+          {i < items.length - 1 && <DashedDivider />}
+        </div>
+      ))}
+    </>
+  )
+}
+
 const badgeColors = {
   blue: "bg-badge-blue",
   green: "bg-badge-green",

@@ -1,9 +1,10 @@
 import { useState } from "react"
 
 import { AllocationBar } from "@/components/charts/AllocationBar"
-import { DashedDivider, SketchCard } from "@/components/sketch/SketchCard"
+import { DividedList, SketchCard } from "@/components/sketch/SketchCard"
 import { FilterPills } from "@/components/sketch/FilterPills"
-import { usePositions } from "@/hooks/usePortfolio"
+import { usePositions } from "@/hooks/portfolio"
+import { gainLossClass } from "@/lib/utils"
 
 const FILTERS = ["All", "Winners", "Losers"] as const
 type Filter = (typeof FILTERS)[number]
@@ -41,24 +42,25 @@ export function PositionsTab() {
           <div className={`flex-[0_0_140px] text-right ${headerCell}`}>Gain/Loss</div>
         </div>
 
-        {filtered.map((pos, i) => (
-          <div key={pos.ticker}>
+        <DividedList
+          items={filtered}
+          itemKey={(pos) => pos.ticker}
+          renderItem={(pos) => (
             <div className="-mx-3 flex items-center rounded-md px-3 py-4 hover:bg-[rgba(201,223,245,0.2)]">
               <div className="flex-[0_0_90px]">
                 <div className="font-hand text-xl font-bold text-ink">{pos.ticker}</div>
               </div>
               <div className="flex-[0_0_90px] font-sans text-sm text-ink">{pos.shares}</div>
               <div className="flex-[0_0_100px] font-sans text-sm text-sub">{pos.avgCost}</div>
-              <div className="flex-[0_0_100px] font-sans text-sm text-ink">{pos.current}</div>
+              <div className="flex-[0_0_100px] font-sans text-sm text-ink">{pos.currentPrice}</div>
               <div className="flex-1" />
               <div className="flex-[0_0_100px] text-right font-sans text-[15px] font-medium text-ink">{pos.value}</div>
               <div className="flex-[0_0_140px] text-right font-sans text-sm font-semibold">
-                <span className={pos.positive ? "text-positive" : "text-negative"}>{pos.change}</span>
+                <span className={gainLossClass(pos.positive)}>{pos.change}</span>
               </div>
             </div>
-            {i < filtered.length - 1 && <DashedDivider />}
-          </div>
-        ))}
+          )}
+        />
       </SketchCard>
     </div>
   )

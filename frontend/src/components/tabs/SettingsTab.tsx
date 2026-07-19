@@ -2,10 +2,8 @@ import { useState } from "react"
 
 import { ChevronDownIcon } from "@/components/icons"
 import { DashedDivider, SketchCard } from "@/components/sketch/SketchCard"
-import { SegmentedControl } from "@/components/sketch/FilterPills"
+import { CHART_PERIODS, SegmentedControl, type ChartPeriod } from "@/components/sketch/FilterPills"
 import { Switch } from "@/components/ui/switch"
-
-const CHART_PERIODS = ["1M", "3M", "1Y"] as const
 
 const fieldLabel = "mb-1.5 font-sans text-xs font-semibold text-sub uppercase tracking-[0.5px]"
 const fieldBox = "sketchy-filter rounded-md border-2 border-ink bg-btn px-3.5 py-2.5 font-sans text-sm"
@@ -21,7 +19,7 @@ function PreferenceToggle({ label, defaultOn }: { label: string; defaultOn: bool
 }
 
 export function SettingsTab() {
-  const [period, setPeriod] = useState<(typeof CHART_PERIODS)[number]>("1Y")
+  const [period, setPeriod] = useState<ChartPeriod>("1Y")
 
   return (
     <div className="grid grid-cols-2 gap-6">
