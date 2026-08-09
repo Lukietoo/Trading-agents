@@ -95,8 +95,15 @@ npm run typecheck
 
 ## Working style
 
-- **Ask before assuming.** If a spec is ambiguous on schema, naming, or an
-  external API's behaviour, ask rather than picking. A wrong guess propagates.
+- **Stop and ask, always.** If a spec is ambiguous on anything — schema, naming,
+  file placement, library choice, an external API's behaviour — stop and ask.
+  Do not pick a reasonable option and continue. A wrong guess propagates through
+  every later phase, and a short question now is cheaper than a refactor later.
+  This applies even when the answer seems obvious.
+- **Conflicts stop work.** If a spec contradicts existing code, existing types,
+  or `CONTEXT.md`, do not resolve it yourself in either direction. Stop, show me
+  both sides, and wait. The spec is not automatically right — it was written
+  without reading every file.
 - **Small commits, one concern each.** Conventional commit messages.
 - **Tests alongside code**, not after. Every external API client gets a test
   with a recorded/mocked response — never one that hits the network in CI.
@@ -122,6 +129,35 @@ npm run typecheck
 **Alpaca gotcha:** on the free IEX feed the trailing ~15 minutes of bars can be
 sparse. When requesting a window ending "now", set the end timestamp ~15 minutes
 in the past.
+
+---
+
+## Machines and local state
+
+Development happens on more than one machine (macOS and Windows). Code syncs
+via git; **local state does not**.
+
+Machine-local, never committed, never assumed to exist:
+- `.env`
+- the decision store (SQLite)
+- the data cache
+- stored agent reports
+
+Consequences for how code is written:
+- Never hardcode absolute paths or platform-specific path separators. Use
+  `pathlib`. Code must run on both macOS and Windows.
+- Never assume the decision store already has history. Handle an empty store.
+- Store paths come from config, with sensible defaults, so a fresh clone runs.
+
+**Runner machine: not yet chosen.** Once the pipeline runs daily it will execute
+on exactly one machine, because split execution fragments the decision history
+and makes evaluation meaningless. Until that's decided, do not write anything
+that assumes a specific host, OS, or filesystem layout.
+
+**Scheduling (Phase 5+):** plain cron, or Task Scheduler on Windows. Do not
+introduce Celery, Airflow, or a job queue for one pre-market job per day.
+
+---
 
 **Rate limits are expected, not exceptional.** Every external call needs retry
 with backoff. LLM calls route through the LiteLLM proxy so a exhausted free tier
