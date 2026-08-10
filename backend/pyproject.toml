@@ -7,6 +7,9 @@ dependencies = [
     "fastapi>=0.115",
     "uvicorn>=0.30",
     "httpx>=0.27",
+    # Declared explicitly now that app.decisions.schema depends on it directly,
+    # rather than relying on it arriving transitively through FastAPI.
+    "pydantic>=2.0",
 ]
 
 [project.optional-dependencies]
@@ -19,7 +22,8 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = ["app"]
+# Subpackages are not implied by "app" — each one is listed explicitly.
+packages = ["app", "app.decisions"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
