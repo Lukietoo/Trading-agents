@@ -1,0 +1,48 @@
+{
+  "earningsCalendar": [
+    {
+      "date": "2027-01-27",
+      "epsActual": null,
+      "epsEstimate": 3.0083,
+      "hour": "",
+      "quarter": 1,
+      "revenueActual": null,
+      "revenueEstimate": 155242278933,
+      "symbol": "AAPL",
+      "year": 2027
+    },
+    {
+      "date": "2026-10-28",
+      "epsActual": null,
+      "epsEstimate": 2.0468,
+      "hour": "amc",
+      "quarter": 4,
+      "revenueActual": null,
+      "revenueEstimate": 116373130794,
+      "symbol": "AAPL",
+      "year": 2026
+    },
+    {
+      "date": "2026-07-30",
+      "epsActual": 1.91,
+      "epsEstimate": 1.9271,
+      "hour": "amc",
+      "quarter": 2,
+      "revenueActual": 109417000000,
+      "revenueEstimate": 110823804698,
+      "symbol": "AAPL",
+      "year": 2026
+    },
+    {
+      "date": "2026-07-30",
+      "epsActual": 1.91,
+      "epsEstimate": 2.0512,
+      "hour": "amc",
+      "quarter": 3,
+      "revenueActual": 109417000000,
+      "revenueEstimate": 117137116720,
+      "symbol": "AAPL",
+      "year": 2026
+    }
+  ]
+}
