@@ -16,12 +16,18 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # app/config.py -> backend/ -> repo root. Resolved from __file__ so it works
 # from any working directory and on either OS.
-ENV_FILE = Path(__file__).resolve().parents[2] / ".env"
+REPO_ROOT = Path(__file__).resolve().parents[2]
+ENV_FILE = REPO_ROOT / ".env"
 
 # Until the reset-epoch ticket lands, total P&L is measured from the paper
 # account's starting balance.
 DEFAULT_PNL_BASELINE = 100_000.0
 DEFAULT_ALPACA_PAPER_BASE_URL = "https://paper-api.alpaca.markets"
+
+# Machine-local state, gitignored: a fresh clone runs without setting anything.
+# Built with pathlib, never a hardcoded separator, because the same code runs on
+# macOS and Windows.
+DEFAULT_DATA_CACHE_PATH = REPO_ROOT / ".data" / "cache.sqlite3"
 
 # Hard rule: paper endpoints only. This is the live trading host.
 LIVE_ALPACA_HOST = "api.alpaca.markets"
@@ -47,6 +53,7 @@ class Config(BaseSettings):
 
     alpaca_paper_base_url: str = DEFAULT_ALPACA_PAPER_BASE_URL
     pnl_baseline: float = DEFAULT_PNL_BASELINE
+    data_cache_path: Path = DEFAULT_DATA_CACHE_PATH
 
     @field_validator("alpaca_paper_base_url")
     @classmethod

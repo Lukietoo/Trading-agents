@@ -1,2 +1,4 @@
 .DS_Store
 .env
+# Machine-local state: the data cache and the decision store. Never synced.
+.data/

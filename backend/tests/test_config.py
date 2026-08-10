@@ -1,11 +1,14 @@
 # Config loading, with env_file=None throughout so a developer's own .env can
 # never make a "missing key" test pass.
 
+from pathlib import Path
+
 import pytest
 from pydantic import ValidationError
 
 from app.config import (
     DEFAULT_ALPACA_PAPER_BASE_URL,
+    DEFAULT_DATA_CACHE_PATH,
     DEFAULT_PNL_BASELINE,
     Config,
     MissingConfigError,
@@ -19,7 +22,7 @@ REQUIRED = {
     "FRED_API_KEY": "fred-key",
 }
 
-OPTIONAL = ("ALPACA_PAPER_BASE_URL", "PNL_BASELINE")
+OPTIONAL = ("ALPACA_PAPER_BASE_URL", "PNL_BASELINE", "DATA_CACHE_PATH")
 
 
 @pytest.fixture
@@ -46,16 +49,30 @@ def test_optional_keys_fall_back_to_defaults(env: pytest.MonkeyPatch):
 
     assert config.alpaca_paper_base_url == DEFAULT_ALPACA_PAPER_BASE_URL
     assert config.pnl_baseline == DEFAULT_PNL_BASELINE
+    assert config.data_cache_path == DEFAULT_DATA_CACHE_PATH
 
 
-def test_optional_keys_are_overridable(env: pytest.MonkeyPatch):
+def test_optional_keys_are_overridable(env: pytest.MonkeyPatch, tmp_path):
     env.setenv("ALPACA_PAPER_BASE_URL", "http://127.0.0.1:9000")
     env.setenv("PNL_BASELINE", "96400")
+    env.setenv("DATA_CACHE_PATH", str(tmp_path / "elsewhere.sqlite3"))
 
     config = load_config(env_file=None)
 
     assert config.alpaca_paper_base_url == "http://127.0.0.1:9000"
     assert config.pnl_baseline == 96_400.0
+    assert config.data_cache_path == tmp_path / "elsewhere.sqlite3"
+
+
+def test_the_default_cache_path_is_machine_local_and_gitignored(env: pytest.MonkeyPatch):
+    # Built with pathlib and relative to the repo, so a fresh clone on either
+    # OS runs without setting anything — and .data/ is ignored, so the cache is
+    # never committed.
+    path = load_config(env_file=None).data_cache_path
+
+    assert isinstance(path, Path)
+    assert path.is_absolute()
+    assert ".data" in path.parts
 
 
 @pytest.mark.parametrize("missing", sorted(REQUIRED))
