@@ -10,6 +10,9 @@ dependencies = [
     # Declared explicitly now that app.decisions.schema depends on it directly,
     # rather than relying on it arriving transitively through FastAPI.
     "pydantic>=2.0",
+    # app.config reads the root .env directly, so a scheduled entry point does
+    # not need a shell to source it first.
+    "pydantic-settings>=2.0",
 ]
 
 [project.optional-dependencies]
