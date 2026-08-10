@@ -46,6 +46,9 @@ Ttl = timedelta | NeverExpires
 FUNDAMENTALS_TTL: Final = timedelta(days=7)
 NEWS_TTL: Final = timedelta(hours=1)
 MACRO_TTL: Final = timedelta(days=1)
+# SEC filings arrive continuously — a Form 4 is due within two business days —
+# so a week-old view would miss most of what a daily run exists to notice.
+FILINGS_TTL: Final = timedelta(days=1)
 # Quotes and snapshots are deliberately absent: they are not cached at all.
 
 
