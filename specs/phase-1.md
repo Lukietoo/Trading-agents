@@ -13,8 +13,18 @@ Every later phase reads through it. No LLM calls in this phase.
 clear message naming any missing required key. Add every new key to
 `.env.example` with a placeholder.
 
-Required: `ALPACA_API_KEY`, `ALPACA_SECRET_KEY`, `FINNHUB_API_KEY`,
+Required: `ALPACA_API_KEY_ID`, `ALPACA_API_SECRET_KEY`, `FINNHUB_API_KEY`,
 `FRED_API_KEY`.
+
+The two Alpaca names are **not** the `ALPACA_API_KEY` / `ALPACA_SECRET_KEY`
+this spec originally drafted. `app/main.py` already reads `ALPACA_API_KEY_ID`
+and `ALPACA_API_SECRET_KEY`, `.env.example` declares them, and the live `.env`
+on each machine uses them. Renaming would mean hand-editing `.env` on every
+machine — and local state does not sync — for no functional gain. The running
+code wins; the config module adopts the existing names.
+
+Also already in use, optional with defaults, and not to be dropped:
+`ALPACA_PAPER_BASE_URL` (defaults to the paper host) and `PNL_BASELINE`.
 
 ---
 
@@ -41,10 +51,17 @@ this module or any other module in this phase.**
 ```
 get_bars(ticker, start, end, timeframe='1Day') -> DataFrame
 get_snapshot(ticker) -> Snapshot
-get_account() -> Account          # may already exist in backend/ — reuse
+get_account() -> Account          # delegate to app/alpaca.py — see below
 get_most_actives(top=20) -> list[Candidate-ish]
 get_market_movers(top=20) -> {gainers, losers}
 ```
+
+**Wrap `app/alpaca.py`, do not absorb it.** `HttpAlpacaClient` already exists
+and serves the dashboard's `/api/snapshot`. The data-layer client composes it
+for account state rather than reimplementing or moving it, and adds bars,
+snapshots and the screener endpoints alongside. Rewriting working dashboard
+code is not in this phase's scope, and the `AlpacaClient` protocol is the seam
+the existing HTTP tests fake — keep it intact.
 
 **Free-tier handling:** the feed is real-time IEX with delayed SIP. When an
 end timestamp is `now`, clamp it to ~15 minutes in the past, or the trailing
@@ -82,9 +99,26 @@ update monthly at most.
 
 ## Task 6 — Indicators
 
-`backend/data/indicators.py`. Use `pandas-ta` or `TA-Lib` — do not hand-roll.
-Compute over a bars DataFrame: RSI, MACD, SMA(20/50/200), ATR, Bollinger Bands,
-volume vs 20-day average.
+`backend/data/indicators.py`. Use **TA-Lib** — do not hand-roll. Compute over a
+bars DataFrame: RSI, MACD, SMA(20/50/200), ATR, Bollinger Bands, volume vs
+20-day average.
+
+TA-Lib over `pandas-ta`, decided after installing both on Python 3.13:
+
+- TA-Lib 0.7.1 is a stable release; `pandas-ta` is still on a beta
+  (`0.4.71b0`) whose last release was September 2025.
+- TA-Lib now ships prebuilt wheels — `cp313` for both macOS arm64 and
+  `win_amd64` — so the old objection that it needs a C toolchain no longer
+  applies on either development machine.
+- It is the reference implementation the hand-checked expected values in the
+  indicator tests come from. `pandas-ta` delegates to it anyway when present.
+
+The cost is that TA-Lib takes and returns numpy arrays rather than DataFrames,
+so each indicator needs a thin DataFrame-in/DataFrame-out wrapper — which this
+task calls for regardless. Volume vs its 20-day average is not a TA-Lib
+indicator; it is a rolling mean and stays hand-written.
+
+`pandas` arrives as a dependency either way, since Task 3 returns DataFrames.
 
 Pure functions over a DataFrame. No network calls, no caching. Fully unit
 testable on fixture data.

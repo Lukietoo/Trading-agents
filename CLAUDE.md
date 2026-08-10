@@ -54,14 +54,17 @@ Work is specified one phase at a time in `specs/phase-N.md`.
 **Layout** — what exists today:
 ```
 backend/
-  pyproject.toml      packages = ["app"] — `app` is the installed package
+  pyproject.toml      packages = ["app", "app.decisions"]
   app/
     main.py           FastAPI app + `app_from_env()` factory
     alpaca.py         Alpaca paper API client
     snapshot.py       assembles the dashboard snapshot
+    decisions/        decision schema + SQLite store (Phase 0)
   tests/              pytest, fake Alpaca client, no network
 frontend/src/
-  types/              TypeScript contract — frontend leads (single index.ts)
+  types/              TypeScript contract — frontend leads
+                      index.ts re-exports decisions.ts, so `@/types` stays
+                      the single import path
   api/ components/ data/ hooks/ lib/
 specs/                one work order per phase
 design-reference/
@@ -69,11 +72,14 @@ design-reference/
 
 Backend modules added by later phases go **inside `backend/app/`** —
 `app.decisions`, `app.data`, `app.screener`, `app.agents`, `app.executor`,
-`app.evaluation` — because `packages = ["app"]` is what gets installed and
+`app.evaluation` — because the `packages` list is what gets installed and
 imports are absolute from `app.` (e.g. `from app.alpaca import ...`). A
 top-level `backend/decisions/` would not be importable without changing
 packaging. Some phase specs write the shorter `backend/<module>/` path; that
 means `backend/app/<module>/`.
+
+**Subpackages are not implied by `"app"`.** Each new one must be added to
+`packages` in `backend/pyproject.toml` or it will not be installed.
 
 **The contract direction.** Per `CONTEXT.md`, the frontend's TypeScript types
 define the data contract; the backend conforms. When adding a shared entity,
