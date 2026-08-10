@@ -143,13 +143,26 @@ is the only permitted mutation.
 
 ## Acceptance criteria
 
-- [ ] `CONTEXT.md` defines every term above; no new term used in code is absent
-- [ ] TS types compile (`npm run typecheck`)
-- [ ] Pydantic models import and validate
-- [ ] Round-trip serialisation test passes and asserts wire field names
-- [ ] `pytest` passes; `ruff check` clean
-- [ ] Store enforces decision immutability (test asserts the raise)
-- [ ] No API route changes, no frontend component changes, no network calls
+- [x] `CONTEXT.md` defines every term above; no new term used in code is absent
+- [x] TS types compile (`npm run typecheck`)
+- [x] Pydantic models import and validate
+- [x] Round-trip serialisation test passes and asserts wire field names
+- [x] `pytest` passes; `ruff check` clean
+- [x] Store enforces decision immutability (test asserts the raise)
+- [x] No API route changes, no frontend component changes, no network calls
+
+Verified 2026-08-09, in order: all eleven glossary terms present in
+`CONTEXT.md`; `npx tsc -b` exits 0; `tests/test_decision_schema.py` and
+`tests/test_decision_store.py` pass (26 tests);
+`test_decision_json_field_names_match_the_typescript_interface` asserts the
+wire names field by field; `pytest` green and `ruff check` clean;
+`test_saving_an_existing_decision_id_raises` asserts the immutability raise;
+`app/main.py` still exposes only `/api/snapshot`, `app/decisions/` contains no
+networking import, and no frontend file has changed.
+
+One wording note: the second criterion names `npm run typecheck`, which does
+not exist in this repo — type checking is `tsc -b`, as `CLAUDE.md` records.
+That is what was run.
 
 ## Out of scope
 
