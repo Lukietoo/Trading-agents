@@ -16,6 +16,10 @@ dependencies = [
     # Bar series are DataFrames: it is what the indicators consume and what
     # TA-Lib wraps.
     "pandas>=2.2",
+    # Indicators. Chosen over pandas-ta in the phase spec; 0.7.1 ships prebuilt
+    # cp313 wheels for macOS arm64 and win_amd64, so neither machine needs a C
+    # toolchain. Verified installing from a wheel here.
+    "TA-Lib>=0.7",
 ]
 
 [project.optional-dependencies]
