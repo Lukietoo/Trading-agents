@@ -13,6 +13,9 @@ dependencies = [
     # app.config reads the root .env directly, so a scheduled entry point does
     # not need a shell to source it first.
     "pydantic-settings>=2.0",
+    # Bar series are DataFrames: it is what the indicators consume and what
+    # TA-Lib wraps.
+    "pandas>=2.2",
 ]
 
 [project.optional-dependencies]
