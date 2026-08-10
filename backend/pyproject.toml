@@ -10,11 +10,24 @@ dependencies = [
     # Declared explicitly now that app.decisions.schema depends on it directly,
     # rather than relying on it arriving transitively through FastAPI.
     "pydantic>=2.0",
+    # app.config reads the root .env directly, so a scheduled entry point does
+    # not need a shell to source it first.
+    "pydantic-settings>=2.0",
+    # Bar series are DataFrames: it is what the indicators consume and what
+    # TA-Lib wraps.
+    "pandas>=2.2",
+    # Indicators. Chosen over pandas-ta in the phase spec; 0.7.1 ships prebuilt
+    # cp313 wheels for macOS arm64 and win_amd64, so neither machine needs a C
+    # toolchain. Verified installing from a wheel here.
+    "TA-Lib>=0.7",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0",
+    # The data-layer clients are async, so their tests are coroutines. Configured
+    # in asyncio_mode = "auto" below, which is why no test carries a marker.
+    "pytest-asyncio>=0.24",
     "ruff>=0.16",
 ]
 
@@ -24,10 +37,13 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
 # Subpackages are not implied by "app" — each one is listed explicitly.
-packages = ["app", "app.decisions"]
+packages = ["app", "app.decisions", "app.data"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# "auto" so an async test needs no marker. The alternative, marking every one,
+# is noise on a suite where async is the norm rather than the exception.
+asyncio_mode = "auto"
 
 [tool.ruff]
 line-length = 100

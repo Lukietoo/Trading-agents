@@ -175,8 +175,11 @@ in the past.
 
 ## Machines and local state
 
-Development happens on more than one machine (macOS and Windows). Code syncs
-via git; **local state does not**.
+**macOS is the only machine.** Development and the daily run both happen there.
+Windows may be added later, but nothing is built or tested for it today — do
+not add a Windows-specific code path, script, or dependency until that changes.
+
+Code syncs via git; **local state does not**.
 
 Machine-local, never committed, never assumed to exist:
 - `.env`
@@ -186,17 +189,19 @@ Machine-local, never committed, never assumed to exist:
 
 Consequences for how code is written:
 - Never hardcode absolute paths or platform-specific path separators. Use
-  `pathlib`. Code must run on both macOS and Windows.
+  `pathlib`. This stays a rule even though only macOS is targeted: it is what
+  ordinary Python looks like, it costs nothing, and it keeps the Windows door
+  open for free. It is not a licence to *test* on Windows.
 - Never assume the decision store already has history. Handle an empty store.
 - Store paths come from config, with sensible defaults, so a fresh clone runs.
 
-**Runner machine: not yet chosen.** Once the pipeline runs daily it will execute
-on exactly one machine, because split execution fragments the decision history
-and makes evaluation meaningless. Until that's decided, do not write anything
-that assumes a specific host, OS, or filesystem layout.
+**Runner machine: the Mac.** The pipeline runs daily on exactly one machine,
+because split execution fragments the decision history and makes evaluation
+meaningless. Still, do not hardcode a hostname or a home directory — "one
+machine" is a deployment fact, not a licence to bake in a filesystem layout.
 
-**Scheduling (Phase 5+):** plain cron, or Task Scheduler on Windows. Do not
-introduce Celery, Airflow, or a job queue for one pre-market job per day.
+**Scheduling (Phase 5+):** plain cron. Do not introduce Celery, Airflow, or a
+job queue for one pre-market job per day.
 
 ---
 

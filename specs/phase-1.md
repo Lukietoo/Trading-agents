@@ -145,13 +145,35 @@ touch one file.
 
 ## Acceptance criteria
 
-- [ ] `MarketData().get_bars('AAPL', 90)` returns clean data; second call hits cache
-- [ ] `MarketData().get_fundamentals('AAPL')` returns populated fields
-- [ ] Indicators compute correctly on fixtures
-- [ ] Missing config key produces a clear startup error naming the key
-- [ ] `pytest` passes with no network access; `ruff check` clean
-- [ ] `.env.example` lists every key
-- [ ] Grep confirms no order-placement call anywhere in `backend/data/`
+- [x] `MarketData().get_bars('AAPL', 90)` returns clean data; second call hits cache
+- [x] `MarketData().get_fundamentals('AAPL')` returns populated fields
+- [x] Indicators compute correctly on fixtures
+- [x] Missing config key produces a clear startup error naming the key
+- [x] `pytest` passes with no network access; `ruff check` clean
+- [x] `.env.example` lists every key
+- [x] Grep confirms no order-placement call anywhere in `backend/data/`
+
+Every box above is ticked against a test, not a manual check:
+`backend/tests/test_phase_1_acceptance.py` has one test per criterion, in this
+order. Run `pytest` and the boxes re-verify themselves — including against a
+later phase that quietly undoes something this one promised.
+
+Two criteria are enforced rather than sampled. "No network access" is a
+session-wide autouse guard in `conftest.py` that makes any real socket connect
+raise, so it holds for every test in the suite rather than for the one that
+asserts it; the grep for order placement is stronger than the spec asked for,
+checking that no HTTP write verb exists anywhere in `app/data/` — there is no
+request that *could* place an order, only `client.get`.
+
+The acceptance tests were themselves checked by mutation: the window-end
+quantising, the indicator warm-up, the network guard, `.env.example`
+completeness, the live-host refusal and an injected order call were each broken
+in turn to confirm the matching test fails. Two did not fail on the first
+attempt and were strengthened — see the notes in the file.
+
+`get_bars` and `get_fundamentals` were also run against the live APIs, since
+that is what the criteria describe: 61 bars with no gaps, 453 ms cold and 3 ms
+warm; fundamentals populated (pe 35.47, pb 42.53, beta 1.081).
 
 ## Out of scope
 

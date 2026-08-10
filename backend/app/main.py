@@ -1,13 +1,8 @@
-import os
-
 from fastapi import FastAPI
 
 from app.alpaca import AlpacaClient, HttpAlpacaClient
+from app.config import DEFAULT_PNL_BASELINE, load_config
 from app.snapshot import Snapshot, build_snapshot
-
-# Until the reset-epoch ticket lands, total P&L is measured from the paper
-# account's starting balance.
-DEFAULT_PNL_BASELINE = 100_000.0
 
 
 def create_app(alpaca: AlpacaClient, pnl_baseline: float = DEFAULT_PNL_BASELINE) -> FastAPI:
@@ -26,11 +21,12 @@ def create_app(alpaca: AlpacaClient, pnl_baseline: float = DEFAULT_PNL_BASELINE)
 
 
 def app_from_env() -> FastAPI:
+    config = load_config()
     return create_app(
         HttpAlpacaClient(
-            base_url=os.environ.get("ALPACA_PAPER_BASE_URL", "https://paper-api.alpaca.markets"),
-            key_id=os.environ["ALPACA_API_KEY_ID"],
-            secret_key=os.environ["ALPACA_API_SECRET_KEY"],
+            base_url=config.alpaca_paper_base_url,
+            key_id=config.alpaca_api_key_id,
+            secret_key=config.alpaca_api_secret_key,
         ),
-        pnl_baseline=float(os.environ.get("PNL_BASELINE", DEFAULT_PNL_BASELINE)),
+        pnl_baseline=config.pnl_baseline,
     )

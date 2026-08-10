@@ -1,0 +1,105 @@
+{
+  "last_updated": "2026-08-07T23:59:00.229246329Z",
+  "most_actives": [
+    {
+      "symbol": "HCWC",
+      "trade_count": 733341,
+      "volume": 654104296
+    },
+    {
+      "symbol": "YYAI",
+      "trade_count": 182258,
+      "volume": 247362202
+    },
+    {
+      "symbol": "SPCX",
+      "trade_count": 2526154,
+      "volume": 242145475
+    },
+    {
+      "symbol": "HTZ",
+      "trade_count": 357493,
+      "volume": 226484318
+    },
+    {
+      "symbol": "MSTU",
+      "trade_count": 91136,
+      "volume": 222206263
+    },
+    {
+      "symbol": "TTD",
+      "trade_count": 552914,
+      "volume": 133441954
+    },
+    {
+      "symbol": "WWR",
+      "trade_count": 225637,
+      "volume": 131443936
+    },
+    {
+      "symbol": "CPOP",
+      "trade_count": 271551,
+      "volume": 123684396
+    },
+    {
+      "symbol": "RCON",
+      "trade_count": 56220,
+      "volume": 121250082
+    },
+    {
+      "symbol": "NVDA",
+      "trade_count": 2053895,
+      "volume": 106389004
+    },
+    {
+      "symbol": "SLGB",
+      "trade_count": 267728,
+      "volume": 103130646
+    },
+    {
+      "symbol": "VIVS",
+      "trade_count": 142127,
+      "volume": 97893833
+    },
+    {
+      "symbol": "TLT",
+      "trade_count": 120388,
+      "volume": 96136763
+    },
+    {
+      "symbol": "QNME",
+      "trade_count": 161868,
+      "volume": 95430185
+    },
+    {
+      "symbol": "TSLL",
+      "trade_count": 112552,
+      "volume": 92971323
+    },
+    {
+      "symbol": "SNXX",
+      "trade_count": 306829,
+      "volume": 92362338
+    },
+    {
+      "symbol": "SOAR",
+      "trade_count": 91493,
+      "volume": 90524993
+    },
+    {
+      "symbol": "PLTR",
+      "trade_count": 1001926,
+      "volume": 77520156
+    },
+    {
+      "symbol": "INTC",
+      "trade_count": 666779,
+      "volume": 76551180
+    },
+    {
+      "symbol": "ONDS",
+      "trade_count": 167010,
+      "volume": 72837316
+    }
+  ]
+}
