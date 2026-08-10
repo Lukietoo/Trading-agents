@@ -131,8 +131,21 @@ def volume_vs_average(
     """Today's volume as a multiple of the trailing average. 3.0 means triple.
 
     Not a TA-Lib indicator — it is a rolling mean, so it stays hand-written.
-    The window excludes the current bar: dividing volume by an average that
-    already contains it damps exactly the spike the screener is looking for.
+
+    The window **excludes the current bar**, which is a deliberate departure
+    from the version most charting tools draw. Dividing by an average that
+    already contains today damps the very spike being measured, and it gets
+    worse as the spike grows, because today's volume inflates the baseline it
+    is compared against:
+
+        true 3x   -> 2.73        true 50x   -> 14.49
+        true 10x  -> 6.90        true 1000x -> 19.63
+
+    Worse than understating, it *saturates*: with a window of N the ratio can
+    never exceed N however extreme the day, so a 50x and a 1000x day become
+    nearly indistinguishable. For a screener whose whole job is ranking names
+    by how unusual they are, that compresses precisely the end that matters.
+    Excluding the current bar has no ceiling — 50x reports as 50.
 
     NOTE: on Alpaca's free IEX feed, volume is one venue's share of the
     consolidated tape, not the whole. The ratio is still meaningful because

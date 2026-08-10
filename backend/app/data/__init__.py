@@ -49,10 +49,11 @@ __all__ = [
     "indicators",
 ]
 
-# Default lookbacks, in CALENDAR days. Note the distinction: 90 calendar days
-# is roughly 62 daily bars, because markets close at weekends and holidays. Any
-# caller that needs N *bars* must ask for more calendar days than that —
-# indicators with a 200-bar warm-up need roughly 290.
+# Default lookbacks, in calendar days — which is why every parameter taking one
+# is named calendar_days rather than days. The distinction is not pedantic: 90
+# calendar days is about 61 daily bars, because markets close at weekends and
+# holidays. A caller who needs N *bars* must ask for roughly N * 1.45 days, so
+# an indicator with a 200-bar warm-up needs about 290.
 DEFAULT_BARS_LOOKBACK_DAYS: Final = 90
 DEFAULT_NEWS_LOOKBACK_DAYS: Final = 7
 DEFAULT_INSIDER_LOOKBACK_DAYS: Final = 180
@@ -110,39 +111,43 @@ class MarketData:
             self._config = load_config()
         return self._config
 
-    def _window(self, days: int) -> tuple[date, date]:
+    def _window(self, calendar_days: int) -> tuple[date, date]:
         today = self._now().date()
-        return today - timedelta(days=days), today
+        return today - timedelta(days=calendar_days), today
 
     # --- prices ---------------------------------------------------------
 
     async def get_bars(
         self,
         ticker: str,
-        days: int = DEFAULT_BARS_LOOKBACK_DAYS,
+        calendar_days: int = DEFAULT_BARS_LOOKBACK_DAYS,
         timeframe: Timeframe = "1Day",
     ) -> pd.DataFrame:
-        """The last `days` CALENDAR days of bars.
+        """Bars over the last `calendar_days` days.
+
+        Calendar days, not trading days: 90 returns about 61 daily bars. Ask
+        for more than you need bars.
 
         The end is clamped ~15 minutes into the past — see
         alpaca_client.clamp_end — so the trailing window is not sparse on the
         free feed.
         """
-        start, _ = self._window(days)
+        start, _ = self._window(calendar_days)
         return await self._alpaca.get_bars(ticker, start=start, timeframe=timeframe)
 
     async def get_bars_with_indicators(
         self,
         ticker: str,
-        days: int = DEFAULT_BARS_LOOKBACK_DAYS,
+        calendar_days: int = DEFAULT_BARS_LOOKBACK_DAYS,
         timeframe: Timeframe = "1Day",
     ) -> pd.DataFrame:
         """Bars with every indicator appended.
 
-        Indicators whose warm-up the window does not cover are NaN throughout;
-        ask for more days rather than reading the NaN as a zero.
+        An indicator whose warm-up the window does not cover is NaN for every
+        row — 90 calendar days is 61 bars, so sma_200 is NaN throughout. Ask
+        for more days rather than reading that NaN as a zero.
         """
-        return indicators.add_indicators(await self.get_bars(ticker, days, timeframe))
+        return indicators.add_indicators(await self.get_bars(ticker, calendar_days, timeframe))
 
     async def get_snapshot(self, ticker: str) -> Snapshot:
         """Current price state. Never cached."""
@@ -165,26 +170,27 @@ class MarketData:
         return await self._finnhub.get_fundamentals(ticker)
 
     async def get_company_news(
-        self, ticker: str, days: int = DEFAULT_NEWS_LOOKBACK_DAYS
+        self, ticker: str, calendar_days: int = DEFAULT_NEWS_LOOKBACK_DAYS
     ) -> list[NewsItem]:
-        start, end = self._window(days)
+        start, end = self._window(calendar_days)
         return await self._finnhub.get_company_news(ticker, start=start, end=end)
 
     async def get_earnings_calendar(
-        self, ticker: str, days: int = DEFAULT_EARNINGS_WINDOW_DAYS
+        self, ticker: str, calendar_days: int = DEFAULT_EARNINGS_WINDOW_DAYS
     ) -> list[EarningsEvent]:
-        """Earnings `days` either side of today — past results and scheduled
+        """Earnings `calendar_days` either side of today — past results and scheduled
         dates in one call, since a screener wants the next one and an
         evaluation pass wants the last."""
         today = self._now().date()
+        window = timedelta(days=calendar_days)
         return await self._finnhub.get_earnings_calendar(
-            ticker, start=today - timedelta(days=days), end=today + timedelta(days=days)
+            ticker, start=today - window, end=today + window
         )
 
     async def get_insider_transactions(
-        self, ticker: str, days: int = DEFAULT_INSIDER_LOOKBACK_DAYS
+        self, ticker: str, calendar_days: int = DEFAULT_INSIDER_LOOKBACK_DAYS
     ) -> list[InsiderTx]:
-        start, end = self._window(days)
+        start, end = self._window(calendar_days)
         return await self._finnhub.get_insider_transactions(ticker, start=start, end=end)
 
     # --- macro ----------------------------------------------------------
@@ -192,13 +198,13 @@ class MarketData:
     async def get_macro_series(
         self,
         series_id: str,
-        days: int = DEFAULT_MACRO_LOOKBACK_DAYS,
+        calendar_days: int = DEFAULT_MACRO_LOOKBACK_DAYS,
         *,
         as_of: date | None = None,
     ) -> pd.Series:
         """One FRED series. Pass `as_of` in any backtest or evaluation path:
         FRED revises, so the default view of a past date is look-ahead."""
-        start, end = self._window(days)
+        start, end = self._window(calendar_days)
         return await self._fred.get_series(series_id, start=start, end=end, as_of=as_of)
 
     # --- maintenance ----------------------------------------------------

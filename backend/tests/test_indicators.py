@@ -315,6 +315,27 @@ def test_the_average_excludes_the_current_bar():
     assert including_today.iloc[-1] == pytest.approx(2.727, abs=0.01)
 
 
+@pytest.mark.parametrize(
+    "multiple,damped_to",
+    [(3, 2.73), (10, 6.90), (50, 14.49), (1000, 19.63)],
+)
+def test_including_the_current_bar_would_saturate(multiple: int, damped_to: float):
+    # The reason for the choice above, and the one that actually decides it.
+    # Including today does not merely understate a spike, it *caps* it: with a
+    # 20-day window the ratio cannot exceed 20 however extreme the day, so a
+    # 50x and a 1000x day come out nearly the same. A screener that ranks by
+    # unusualness would be blind at exactly the end that matters.
+    volumes = [1_000.0] * 20 + [1_000.0 * multiple]
+    frame = frame_from([50.0] * 21, volumes=volumes)
+
+    ours = volume_vs_average(frame, period=20).iloc[-1]
+    including_today = (frame["volume"] / frame["volume"].rolling(20).mean()).iloc[-1]
+
+    assert ours == pytest.approx(float(multiple))
+    assert including_today == pytest.approx(damped_to, abs=0.01)
+    assert including_today < 20  # the ceiling, whatever the multiple
+
+
 def test_steady_volume_reads_as_one():
     result = volume_vs_average(frame_from([50.0] * 30), period=20)
 

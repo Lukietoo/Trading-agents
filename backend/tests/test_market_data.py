@@ -158,7 +158,7 @@ async def test_the_news_window_defaults_to_a_week(market: MarketData, router: Ro
 
 async def test_the_earnings_window_reaches_both_directions(market: MarketData, router: Router):
     # A screener wants the next date; an evaluation pass wants the last one.
-    await market.get_earnings_calendar("AAPL", days=120)
+    await market.get_earnings_calendar("AAPL", calendar_days=120)
 
     assert router.last.url.params.get("from") == "2026-04-11"
     assert router.last.url.params.get("to") == "2026-12-07"
