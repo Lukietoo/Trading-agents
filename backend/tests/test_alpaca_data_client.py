@@ -243,6 +243,67 @@ async def test_a_second_call_for_a_closed_window_makes_no_request(cache, account
     pd.testing.assert_frame_equal(first, second)
 
 
+async def test_repeated_calls_on_a_moving_clock_still_hit_the_cache(
+    tmp_path, account_client
+):
+    # The regression that a frozen clock hides. With `end=None` the window ends
+    # at "now", which differs by microseconds on every call; if that instant
+    # reaches the cache key, every request mints a fresh one and the cache
+    # stores everything while hitting nothing. Verified against a real run
+    # before the ceiling was quantised: three identical calls, three entries.
+    ticking = {"now": NOW}
+    cache = Cache(tmp_path / "cache.sqlite3", now=lambda: ticking["now"])
+    recorder = Recorder({"/v2/stocks/bars": load("alpaca_bars_aapl_1day")})
+    client = AlpacaDataClient(
+        key_id="k",
+        secret_key="s",
+        account_client=account_client,
+        cache=cache,
+        transport=httpx.MockTransport(recorder),
+        policy=RetryPolicy(attempts=2, base_delay=0, jitter=False),
+        now=lambda: ticking["now"],
+    )
+
+    for _ in range(3):
+        await client.get_bars("AAPL", start=date(2026, 4, 13))
+        ticking["now"] += timedelta(seconds=1)
+
+    assert len(recorder.requests) == 1
+
+
+async def test_the_window_end_is_quantised_not_microsecond_exact():
+    # Two instants inside the same quarter hour must produce one end.
+    first = clamp_end(None, now=datetime(2026, 8, 9, 14, 30, 0, 123456, tzinfo=UTC))
+    second = clamp_end(None, now=datetime(2026, 8, 9, 14, 31, 47, 987654, tzinfo=UTC))
+
+    assert first == second
+    assert first.second == 0 and first.microsecond == 0
+    assert first.minute % 15 == 0
+
+
+async def test_a_new_quarter_hour_does_refetch(tmp_path, account_client):
+    # Quantising must not freeze the window forever: crossing a boundary is a
+    # new window and goes back upstream.
+    ticking = {"now": NOW}
+    cache = Cache(tmp_path / "cache.sqlite3", now=lambda: ticking["now"])
+    recorder = Recorder({"/v2/stocks/bars": load("alpaca_bars_aapl_1day")})
+    client = AlpacaDataClient(
+        key_id="k",
+        secret_key="s",
+        account_client=account_client,
+        cache=cache,
+        transport=httpx.MockTransport(recorder),
+        policy=RetryPolicy(attempts=2, base_delay=0, jitter=False),
+        now=lambda: ticking["now"],
+    )
+
+    await client.get_bars("AAPL", start=date(2026, 4, 13))
+    ticking["now"] += timedelta(minutes=16)
+    await client.get_bars("AAPL", start=date(2026, 4, 13))
+
+    assert len(recorder.requests) == 2
+
+
 async def test_a_different_window_is_a_different_cache_entry(cache, account_client):
     recorder = Recorder({"/v2/stocks/bars": load("alpaca_bars_aapl_1day")})
     client = build_client(recorder, cache, account_client)

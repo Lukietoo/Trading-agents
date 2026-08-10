@@ -49,6 +49,9 @@ MACRO_TTL: Final = timedelta(days=1)
 # SEC filings arrive continuously — a Form 4 is due within two business days —
 # so a week-old view would miss most of what a daily run exists to notice.
 FILINGS_TTL: Final = timedelta(days=1)
+# A bar window that runs up to the present is still filling. Re-fetching more
+# often than the free feed updates gains nothing, so this matches its lag.
+OPEN_WINDOW_TTL: Final = timedelta(minutes=15)
 # Quotes and snapshots are deliberately absent: they are not cached at all.
 
 
@@ -221,6 +224,6 @@ def historical_ttl(end: date, *, today: date) -> Ttl:
 
     A window that closed before today can never change, so it is cached
     permanently — the spec's first cache rule. A window touching today still
-    has bars arriving, so it gets the short macro TTL and is re-fetched.
+    has bars arriving, so it expires with the feed's own lag.
     """
-    return NEVER_EXPIRES if end < today else MACRO_TTL
+    return NEVER_EXPIRES if end < today else OPEN_WINDOW_TTL

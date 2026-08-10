@@ -138,6 +138,12 @@ def _as_datetime(value: date | datetime, *, end_of_day: bool) -> datetime:
     return datetime.combine(value, moment, tzinfo=UTC)
 
 
+def _floor_to(moment: datetime, quantum: timedelta) -> datetime:
+    seconds = int(quantum.total_seconds())
+    epoch = int(moment.timestamp())
+    return datetime.fromtimestamp(epoch - epoch % seconds, tz=UTC)
+
+
 def clamp_end(
     end: date | datetime | None,
     *,
@@ -153,8 +159,15 @@ def clamp_end(
 
     `end=None` means now. An end already in the past is left alone; only the
     part of a window that reaches into the blind spot is trimmed.
+
+    The ceiling is **floored to a `delay`-sized boundary**, so two calls a
+    second apart compute the same end. Without that, "now" differs by
+    microseconds every call, the end lands in the cache key, and every request
+    mints a fresh key — a cache that stores everything and hits nothing. There
+    is nothing to gain from a finer granularity anyway: the feed itself is only
+    current to within `delay`.
     """
-    ceiling = now - delay
+    ceiling = _floor_to(now - delay, delay)
     if end is None:
         return ceiling
     return min(_as_datetime(end, end_of_day=True), ceiling)

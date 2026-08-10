@@ -11,6 +11,7 @@ from app.data.cache import (
     MACRO_TTL,
     NEVER_EXPIRES,
     NEWS_TTL,
+    OPEN_WINDOW_TTL,
     Cache,
     CacheKey,
     historical_ttl,
@@ -311,9 +312,10 @@ def test_a_window_that_closed_in_the_past_never_expires():
 
 
 def test_a_window_ending_today_is_not_permanent():
-    # Bars are still arriving, so today's window must be re-fetched.
-    assert historical_ttl(date(2026, 8, 9), today=date(2026, 8, 9)) == MACRO_TTL
+    # Bars are still arriving, so today's window must be re-fetched — and it
+    # expires with the feed's own lag, since re-fetching sooner gains nothing.
+    assert historical_ttl(date(2026, 8, 9), today=date(2026, 8, 9)) == OPEN_WINDOW_TTL
 
 
 def test_a_window_ending_in_the_future_is_not_permanent():
-    assert historical_ttl(date(2026, 8, 20), today=date(2026, 8, 9)) == MACRO_TTL
+    assert historical_ttl(date(2026, 8, 20), today=date(2026, 8, 9)) == OPEN_WINDOW_TTL
