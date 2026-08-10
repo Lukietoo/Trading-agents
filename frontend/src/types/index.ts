@@ -2,6 +2,10 @@
 // These types define the contract the backend API must conform to
 // (FastAPI service driven by Claude Code, wrapping the Alpaca paper API).
 
+// The decision-side contract lives in its own file; re-exported so `@/types`
+// stays the single import path.
+export * from "./decisions"
+
 export type BadgeColor = "blue" | "green" | "purple" | "yellow"
 
 /** One headline stat card: display value, direction, and the note beneath. */
