@@ -32,6 +32,44 @@ starting balance.
 **Allocation** — How the invested portion of the portfolio is split across
 positions, expressed as percentage weights.
 
+## Decision terms
+
+The vocabulary of the analysis pipeline: how a ticker becomes worth looking at,
+what the pipeline concludes about it, and how that conclusion is scored later.
+
+**Universe** — The set of tickers eligible for consideration.
+
+**Candidate** — A ticker the screener flagged on a given date as worth
+analyzing. Being a candidate implies nothing about direction: a name down 8% on
+bad news is as much a candidate as one up 8%.
+
+**Trigger** — The specific condition that made a ticker a candidate (e.g. a
+volume spike, an RSI extreme), carried with the values that fired it.
+
+**Analysis Run** — One execution of the agent pipeline over one Candidate,
+producing exactly one Decision.
+
+**Decision** — The pipeline's recorded output for one ticker on one date: an
+Action, a Thesis, and supporting metadata. A Decision is a record, not an
+order — it may never be executed.
+
+**Action** — The call a Decision makes: `BUY`, `SELL`, or `HOLD`. Distinct from
+a Trade's *side*, which is what an order actually sends to Alpaca.
+
+**Conviction** — The pipeline's own confidence in a Decision: low, medium, or
+high.
+
+**Thesis** — The short natural-language rationale for a Decision.
+
+**Outcome** — The realized result of a Decision, measured after the fact:
+forward return over fixed horizons, and the same relative to the benchmark.
+
+**Alpha** — A return measured relative to the benchmark (SPY), not absolute.
+
+**Skipped Candidate** — A Candidate that was not analyzed. Retained
+deliberately: the names not analyzed are the control group for judging whether
+the screener selects for anything real.
+
 ## Conventions
 
 - Positive amounts and percentages render green; negative render coral. This
@@ -46,3 +84,6 @@ positions, expressed as percentage weights.
   two decimals), never display strings. All formatting — currency and percent
   strings, sign-derived green/coral color — lives in the frontend's
   formatting layer.
+- A Decision is immutable once written. Corrections are new Decisions; the
+  only field filled in after the fact is its Outcome.
+- Every Candidate is persisted, analyzed or not.

@@ -2,10 +2,6 @@
 
 Operating instructions for Claude Code in this repository.
 
-> **⚠️ VERIFY BEFORE FIRST USE.** The lines marked `[CONFIRM]` were assumed, not
-> read from the repo. Correct them to match reality, then delete the markers.
-> Wrong conventions here are worse than none.
-
 ---
 
 ## What this project is
@@ -42,27 +38,41 @@ Work is specified one phase at a time in `specs/phase-N.md`.
 
 ## Conventions
 
-**Stack** `[CONFIRM]`
-- Backend: Python 3.12, FastAPI, Pydantic v2
-- Frontend: React + TypeScript
-- Package management: `uv` (fall back to `pip` if not present)
-- Tests: `pytest`
-- Lint/format: `ruff`
+**Stack**
+- Backend: Python ≥3.13 (`backend/pyproject.toml`), FastAPI, Pydantic v2, httpx.
+  Pydantic is used throughout but is only a *transitive* dependency via FastAPI
+  — declare it explicitly the first time a phase depends on it directly.
+- Frontend: React + TypeScript, built with Vite
+- Package management: `venv` + `pip -e '.[dev]'` for the backend, `npm` for the
+  frontend. There is no `uv` lockfile — don't introduce one without asking.
+- Tests: `pytest` (backend), `vitest` (frontend)
+- Lint: `oxlint` (frontend). **The backend has no linter or formatter
+  configured** — `ruff` is not a dependency and there is no config for it.
+  Adding one is its own change, not a side effect of another task.
 
-**Layout**
+**Layout** — what exists today:
 ```
 backend/
-  api/          FastAPI routes (existing)
-  data/         market/fundamental data clients + cache   [Phase 1]
-  screener/     candidate selection                        [Phase 2]
-  agents/       LLM analysis graph                         [Phase 3]
-  decisions/    Decision store and schema                  [Phase 0/4]
-  executor/     the ONLY module that places orders         [Phase 5]
-  evaluation/   outcome backfill, benchmarks               [Phase 6]
-frontend/src/types/   TypeScript contract — frontend leads
+  pyproject.toml      packages = ["app"] — `app` is the installed package
+  app/
+    main.py           FastAPI app + `app_from_env()` factory
+    alpaca.py         Alpaca paper API client
+    snapshot.py       assembles the dashboard snapshot
+  tests/              pytest, fake Alpaca client, no network
+frontend/src/
+  types/              TypeScript contract — frontend leads (single index.ts)
+  api/ components/ data/ hooks/ lib/
 specs/                one work order per phase
-tests/
+design-reference/
 ```
+
+Backend modules added by later phases go **inside `backend/app/`** —
+`app.decisions`, `app.data`, `app.screener`, `app.agents`, `app.executor`,
+`app.evaluation` — because `packages = ["app"]` is what gets installed and
+imports are absolute from `app.` (e.g. `from app.alpaca import ...`). A
+top-level `backend/decisions/` would not be importable without changing
+packaging. Some phase specs write the shorter `backend/<module>/` path; that
+means `backend/app/<module>/`.
 
 **The contract direction.** Per `CONTEXT.md`, the frontend's TypeScript types
 define the data contract; the backend conforms. When adding a shared entity,
@@ -72,23 +82,44 @@ write the TS type first, then the matching Pydantic model.
 rounded to two decimals. All currency/percent formatting and sign-based
 colouring lives in the frontend.
 
+**Serialisation.** Pydantic models declare **camelCase attribute names
+directly** (`avgCost`, `weightPct`, `totalPnlPct` — see `app/snapshot.py`).
+There is no alias generator and no snake_case layer; the Python attribute name
+*is* the wire name. Match this in new models rather than adding aliases.
+
 **Naming.** Use the exact terms from `CONTEXT.md`. If you need a concept that
 isn't in the glossary, add it to `CONTEXT.md` in the same change rather than
 inventing a synonym.
 
 ---
 
-## Commands `[CONFIRM]`
+## Commands
+
+Backend commands run from `backend/`. The app is created by a factory, so
+`--factory` is required; credentials come from the root `.env`.
 
 ```bash
-# backend
-uv run uvicorn backend.main:app --reload
-uv run pytest
-uv run ruff check . && uv run ruff format .
+# backend — first-time setup
+python3 -m venv .venv
+.venv/bin/pip install -e '.[dev]'
 
-# frontend
-npm run dev
-npm run typecheck
+# backend — run
+set -a; source ../.env; set +a
+.venv/bin/uvicorn app.main:app_from_env --factory --port 8000
+
+# backend — test
+.venv/bin/pytest
+```
+
+Frontend commands run from `frontend/`. **There is no `typecheck` script** —
+type checking is `tsc -b`, which `npm run build` also runs.
+
+```bash
+npm run dev        # vite dev server, proxies /api to 127.0.0.1:8000
+npx tsc -b         # type check
+npm run lint       # oxlint
+npm run test       # vitest run
+npm run build      # tsc -b && vite build
 ```
 
 ---
