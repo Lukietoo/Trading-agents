@@ -13,8 +13,18 @@ Every later phase reads through it. No LLM calls in this phase.
 clear message naming any missing required key. Add every new key to
 `.env.example` with a placeholder.
 
-Required: `ALPACA_API_KEY`, `ALPACA_SECRET_KEY`, `FINNHUB_API_KEY`,
+Required: `ALPACA_API_KEY_ID`, `ALPACA_API_SECRET_KEY`, `FINNHUB_API_KEY`,
 `FRED_API_KEY`.
+
+The two Alpaca names are **not** the `ALPACA_API_KEY` / `ALPACA_SECRET_KEY`
+this spec originally drafted. `app/main.py` already reads `ALPACA_API_KEY_ID`
+and `ALPACA_API_SECRET_KEY`, `.env.example` declares them, and the live `.env`
+on each machine uses them. Renaming would mean hand-editing `.env` on every
+machine — and local state does not sync — for no functional gain. The running
+code wins; the config module adopts the existing names.
+
+Also already in use, optional with defaults, and not to be dropped:
+`ALPACA_PAPER_BASE_URL` (defaults to the paper host) and `PNL_BASELINE`.
 
 ---
 
@@ -41,10 +51,17 @@ this module or any other module in this phase.**
 ```
 get_bars(ticker, start, end, timeframe='1Day') -> DataFrame
 get_snapshot(ticker) -> Snapshot
-get_account() -> Account          # may already exist in backend/ — reuse
+get_account() -> Account          # delegate to app/alpaca.py — see below
 get_most_actives(top=20) -> list[Candidate-ish]
 get_market_movers(top=20) -> {gainers, losers}
 ```
+
+**Wrap `app/alpaca.py`, do not absorb it.** `HttpAlpacaClient` already exists
+and serves the dashboard's `/api/snapshot`. The data-layer client composes it
+for account state rather than reimplementing or moving it, and adds bars,
+snapshots and the screener endpoints alongside. Rewriting working dashboard
+code is not in this phase's scope, and the `AlpacaClient` protocol is the seam
+the existing HTTP tests fake — keep it intact.
 
 **Free-tier handling:** the feed is real-time IEX with delayed SIP. When an
 end timestamp is `now`, clamp it to ~15 minutes in the past, or the trailing
