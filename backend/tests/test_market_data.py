@@ -1,105 +1,16 @@
 # The MarketData facade: that it routes to the right client, computes the
 # right windows, and can be built without touching .env or the network.
+#
+# The `market` and `router` fixtures live in conftest.py — the phase's
+# acceptance tests need the same wiring, and one definition beats two.
 
-from datetime import UTC, date, datetime
-from pathlib import Path
+from datetime import date, datetime
 
-import httpx
 import pandas as pd
-import pytest
 
-from app.alpaca import AlpacaAccount
 from app.data import MarketData
-from app.data.alpaca_client import AlpacaDataClient
-from app.data.cache import Cache
-from app.data.finnhub_client import FinnhubClient
-from app.data.fred_client import UNEMPLOYMENT, FredClient
-from app.data.http import RetryPolicy
-from app.data.rate_limit import RateLimiter
-from tests.fixtures import load
-
-NOW = datetime(2026, 8, 9, 14, 30, tzinfo=UTC)
-
-
-class Router:
-    """Serves every fixture by URL fragment and records the requests."""
-
-    ROUTES = {
-        "/v2/stocks/bars": "alpaca_bars_aapl_1day",
-        "/v2/stocks/snapshots": "alpaca_snapshot_aapl",
-        "most-actives": "alpaca_most_actives",
-        "movers": "alpaca_movers",
-        "/stock/metric": "finnhub_metrics_aapl",
-        "/company-news": "finnhub_company_news_aapl",
-        "/calendar/earnings": "finnhub_earnings_calendar_aapl",
-        "/stock/insider-transactions": "finnhub_insider_transactions_aapl",
-        "/series/observations": "fred_unrate",
-    }
-
-    def __init__(self):
-        self.requests: list[httpx.Request] = []
-
-    def __call__(self, request: httpx.Request) -> httpx.Response:
-        self.requests.append(request)
-        for fragment, fixture in self.ROUTES.items():
-            if fragment in request.url.path:
-                return httpx.Response(200, json=load(fixture))
-        return httpx.Response(404, json={"message": f"no route for {request.url.path}"})
-
-    def paths(self) -> list[str]:
-        return [str(request.url.path) for request in self.requests]
-
-    @property
-    def last(self) -> httpx.Request:
-        return self.requests[-1]
-
-
-class FakeAccountClient:
-    async def get_account(self) -> AlpacaAccount:
-        return AlpacaAccount(equity=101_240.5, cash=24_000.0, last_equity=100_980.0)
-
-
-@pytest.fixture
-def router() -> Router:
-    return Router()
-
-
-@pytest.fixture
-def market(tmp_path: Path, router: Router) -> MarketData:
-    """A fully injected facade: no .env, no network, no real waiting."""
-    transport = httpx.MockTransport(router)
-    policy = RetryPolicy(attempts=2, base_delay=0, jitter=False)
-    cache = Cache(tmp_path / "cache.sqlite3", now=lambda: NOW)
-
-    return MarketData(
-        cache=cache,
-        now=lambda: NOW,
-        alpaca=AlpacaDataClient(
-            key_id="k",
-            secret_key="s",
-            account_client=FakeAccountClient(),
-            cache=cache,
-            transport=transport,
-            policy=policy,
-            now=lambda: NOW,
-        ),
-        finnhub=FinnhubClient(
-            api_key="k",
-            cache=cache,
-            limiter=RateLimiter(1000, 60.0),
-            transport=transport,
-            policy=policy,
-            now=lambda: NOW,
-        ),
-        fred=FredClient(
-            api_key="k",
-            cache=cache,
-            transport=transport,
-            policy=policy,
-            now=lambda: NOW,
-        ),
-    )
-
+from app.data.fred_client import UNEMPLOYMENT
+from tests.conftest import Router
 
 # --- the acceptance criteria ------------------------------------------------
 
