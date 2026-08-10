@@ -16,15 +16,24 @@ Success is not "the bot trades." Success is "we can prove whether it should."
 
 ## Current state
 
+*Updated 2026-08-09, after Phase 1 merged.*
+
 | Component | Status |
 |---|---|
 | Frontend dashboard (TS types lead the contract) | Exists |
 | FastAPI backend wrapping Alpaca paper API | Exists |
-| Domain glossary (`CONTEXT.md`) | Exists — state only, no decision vocabulary |
-| Market/fundamental data layer | Missing |
-| Screener | Missing |
+| Domain glossary (`CONTEXT.md`) | Exists — decision vocabulary added in Phase 0 |
+| Decision schema + store | Exists (Phase 0) — nothing constructs the store yet |
+| Market/fundamental data layer | **Exists (Phase 1)** — `MarketData` over Alpaca, Finnhub, FRED, cached |
+| Screener | Missing — Phase 2, next |
 | Agent graph | Missing |
-| Decision store + evaluation loop | Missing |
+| Evaluation loop | Missing |
+
+Phases 0 and 1 are complete, with their acceptance criteria ticked against
+tests rather than manual checks (see the bottom of each spec).
+
+**Nothing runs end to end yet.** The data layer is a library; no command
+performs a full pass. The first runnable thing is Phase 2.
 
 ---
 
@@ -234,10 +243,54 @@ cost. That's a real finding, not a failure.
 
 ## Immediate next actions
 
-1. Add decision vocabulary to `CONTEXT.md`; define the TS types
-2. Register keys: Alpaca, Finnhub, FRED, Google AI Studio, Cerebras, Groq
-3. Build the data layer with caching (Phase 1)
-4. Stand up Alpaca's built-in screener to prove the funnel (Phase 2, v0)
-5. One `propagate()`-equivalent run on one ticker; measure real token cost
+1. Write `specs/phase-2.md` — the screener. Fold in the carry-overs below.
+2. Register the LLM keys not yet needed: Google AI Studio, Cerebras, Groq
+3. Stand up Alpaca's built-in screener to prove the funnel (Phase 2, v0)
+4. One `propagate()`-equivalent run on one ticker; measure real token cost
 
 Do not connect real money at any point in this roadmap.
+
+---
+
+## Carried into the Phase 2 spec session
+
+Open items from Phase 1, deliberately not fixed at the time. Decided on
+2026-08-09 to settle them while specifying Phase 2 rather than as scattered
+one-offs, since several change what Phase 2 should do.
+
+**1. The decision store has no backup.** One SQLite file, one Mac, gitignored,
+synced nowhere. Phase 6 answers "does this beat buy-and-hold?" only from
+accumulated history, and that history cannot be recreated — the LLM outputs and
+the data as it looked that day are gone. The file barely exists today, so this
+is close to free now and expensive later. *Highest priority of these.*
+
+**2. Nothing runs the tests but a human.** No CI, no `.github/`. A break can sit
+in `main` until someone runs `pytest`. Thin for something that will run
+unattended daily from Phase 5.
+
+**3. Recorded fixtures cannot detect vendor drift.** Every test runs against
+responses recorded on 2026-08-09. If Finnhub renames a field tomorrow all 260
+tests still pass and the pipeline breaks on the next real run. Fixtures protect
+against our regressions, not their changes. Wants a separate live contract
+check, deliberately *not* in CI — it would be flaky and would burn quota.
+
+**4. `Fundamentals.is_populated` is weaker than its name.** It only means
+Finnhub returned something. Measured: AAPL 16/16 named fields, NVDA 16/16,
+HTZ 12/16, but SPY 4/16 and the warrant ANSCW 3/16 — all reporting `True`.
+Phase 2 will hand exactly these instruments downstream, so an agent gets a
+green light on near-empty data. Ten-minute fix; shapes Phase 2.
+
+**5. The decision store ignores the config rule.** `CLAUDE.md` says store paths
+come from config with sensible defaults so a fresh clone runs. The cache
+complies via `DATA_CACHE_PATH`; the store takes a bare path with no default and
+no key, and nothing in `app/` constructs it. Phase 4 is where that bites.
+
+**6. Only 7 of 260 tests are proven to catch bugs.** The Phase 1 acceptance
+tests were mutation-checked; the rest were not. Two of those seven failed to
+notice a deliberate break on the first attempt, which is a fair warning about
+the 253 unchecked.
+
+Already scheduled, listed so they are not rediscovered: the raw movers list is
+unusable without a price/liquidity filter (warrants, sub-penny stocks), and
+company news runs to ~250 items a week for a mega-cap, which is a Phase 3 token
+cost problem.
