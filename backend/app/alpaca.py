@@ -2,7 +2,7 @@
 # tests fake; HttpAlpacaClient is the real implementation.
 
 import asyncio
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Literal, Protocol
 
 import httpx
@@ -97,20 +97,26 @@ class HttpAlpacaClient:
             body = response.json()
             return [
                 HistoryPoint(t=t, v=v)
-                for t, v in zip(body.get("timestamp", []), body.get("equity", []))
+                # strict: mismatched lengths mean the series is misaligned, so
+                # every plotted point would be wrong. Raise rather than
+                # silently truncate to the shorter array.
+                for t, v in zip(
+                    body.get("timestamp", []), body.get("equity", []), strict=True
+                )
                 if v is not None
             ]
 
         async with httpx.AsyncClient(headers=self._headers) as http:
             series = await asyncio.gather(*(fetch(http, p) for p in periods.values()))
-        return dict(zip(periods.keys(), series))
+        # strict is free here: gather preserves the order of periods.values().
+        return dict(zip(periods.keys(), series, strict=True))
 
     async def get_recent_closes(self, symbols: list[str]) -> dict[str, list[float]]:
         if not symbols:
             return {}
         # Without an explicit start, the bars endpoint defaults to today only —
         # reach back far enough to cover SPARKLINE_CLOSES trading days.
-        start = datetime.now(timezone.utc) - timedelta(days=SPARKLINE_CLOSES * 2 + 5)
+        start = datetime.now(UTC) - timedelta(days=SPARKLINE_CLOSES * 2 + 5)
         async with httpx.AsyncClient(headers=self._headers) as http:
             response = await http.get(
                 f"{self._data_base_url}/v2/stocks/bars",

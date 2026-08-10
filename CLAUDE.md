@@ -46,9 +46,10 @@ Work is specified one phase at a time in `specs/phase-N.md`.
 - Package management: `venv` + `pip -e '.[dev]'` for the backend, `npm` for the
   frontend. There is no `uv` lockfile — don't introduce one without asking.
 - Tests: `pytest` (backend), `vitest` (frontend)
-- Lint: `oxlint` (frontend). **The backend has no linter or formatter
-  configured** — `ruff` is not a dependency and there is no config for it.
-  Adding one is its own change, not a side effect of another task.
+- Lint: `oxlint` (frontend), `ruff check` (backend). Ruff is a dev dependency
+  and is configured in `backend/pyproject.toml`. **It is lint only — there is
+  no formatter.** Do not run `ruff format`; adding a formatter would reflow
+  every file and is its own change, not a side effect of another task.
 
 **Layout** — what exists today:
 ```
@@ -109,6 +110,9 @@ set -a; source ../.env; set +a
 
 # backend — test
 .venv/bin/pytest
+
+# backend — lint (check only; there is no formatter)
+.venv/bin/ruff check
 ```
 
 Frontend commands run from `frontend/`. **There is no `typecheck` script** —
