@@ -99,9 +99,26 @@ update monthly at most.
 
 ## Task 6 — Indicators
 
-`backend/data/indicators.py`. Use `pandas-ta` or `TA-Lib` — do not hand-roll.
-Compute over a bars DataFrame: RSI, MACD, SMA(20/50/200), ATR, Bollinger Bands,
-volume vs 20-day average.
+`backend/data/indicators.py`. Use **TA-Lib** — do not hand-roll. Compute over a
+bars DataFrame: RSI, MACD, SMA(20/50/200), ATR, Bollinger Bands, volume vs
+20-day average.
+
+TA-Lib over `pandas-ta`, decided after installing both on Python 3.13:
+
+- TA-Lib 0.7.1 is a stable release; `pandas-ta` is still on a beta
+  (`0.4.71b0`) whose last release was September 2025.
+- TA-Lib now ships prebuilt wheels — `cp313` for both macOS arm64 and
+  `win_amd64` — so the old objection that it needs a C toolchain no longer
+  applies on either development machine.
+- It is the reference implementation the hand-checked expected values in the
+  indicator tests come from. `pandas-ta` delegates to it anyway when present.
+
+The cost is that TA-Lib takes and returns numpy arrays rather than DataFrames,
+so each indicator needs a thin DataFrame-in/DataFrame-out wrapper — which this
+task calls for regardless. Volume vs its 20-day average is not a TA-Lib
+indicator; it is a rolling mean and stays hand-written.
+
+`pandas` arrives as a dependency either way, since Task 3 returns DataFrames.
 
 Pure functions over a DataFrame. No network calls, no caching. Fully unit
 testable on fixture data.
